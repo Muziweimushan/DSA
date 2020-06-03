@@ -464,7 +464,9 @@ void List<T>::insertionSort(Posi(T) p, int n)
 template < typename T >
 void List<T>::sort()
 {
-	sort(m_header->m_succ, m_size);
+	/*当长度小于2时不需要排序*/
+	if (m_size < 2)
+		sort(m_header->m_succ, m_size);
 }
 
 template < typename T >
@@ -641,13 +643,6 @@ void List<T>::merge(List<T> &l)
 	}
 	/*对自己做归并等于不用做*/
 }
-#if 0
-template < typename T >
-void List<T>::mergeSort(Posi(T) p, int n)
-{
-	mergeSortInner(p, n);
-}
-#endif
 
 template < typename T >
 void List<T>::mergeSort(Posi(T) &p, int n)
