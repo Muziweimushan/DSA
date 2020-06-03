@@ -641,6 +641,8 @@ void List<T>::merge(List<T> &l)
 	/*对自己做归并等于不用做*/
 }
 
+template < typen>
+
 template < typename T >
 void List<T>::mergeSort(Posi(T) &p, int n)
 {

@@ -34,7 +34,8 @@ void test_sort()
 
 	srand(time(NULL));
 
-	int loop_count = rand() % 999;
+	//int loop_count = rand() % 99999;
+	int loop_count = 1;
 	cout << "loop_count = " << loop_count << endl;
 
 	while (0 < loop_count--)
@@ -42,7 +43,7 @@ void test_sort()
 		if (0 == loop_count % 100)
 			cout << "loop_count = " << loop_count << endl;
 		MyLib::List<int> l;
-		int elem_count = rand() % 9999;
+		int elem_count = rand() % 10;
 		for (int i = 0; i < elem_count; i++)
 		{
 			l.insertAsLast(rand());

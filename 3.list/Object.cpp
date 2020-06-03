@@ -9,13 +9,13 @@ using namespace MyLib;
 
 void *Object::operator new (unsigned long int size) throw()
 {
-	//cout << "operator new size = " << size << endl;
+	cout << "operator new size = " << size << endl;
 	return malloc(size);
 }
 
 void Object::operator delete (void *p)
 {
-	//cout << "operator delete" << endl;
+	cout << "operator delete" << endl;
 	free(p);
 }
 
