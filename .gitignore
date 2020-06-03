@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+#added by liweibin
+#生成tags的根目录标示是.root目录
+.root

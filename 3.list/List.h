@@ -71,8 +71,8 @@ protected:
     void init(void);
     int clear(); /*清除所有节点,返回原列表的规模*/
     void copyNodes(Posi(T) p, int n);   /*复制列表中自p开始的n项*/
-    void merge(Posi(T) p1, int n1, Posi(T) p2, int n2);   /*二路归并*/
-    void mergeSort(Posi(T) p, int n);   /*归并排序,对从p开始连续n个节点进行归并排序*/
+    void merge(Posi(T) &p1, int n1, List<T> &l, Posi(T) p2, int n2);   /*二路归并*/
+    void mergeSort(Posi(T) &p, int n);   /*归并排序,对从p开始连续n个节点进行归并排序*/
     void selectionSort(Posi(T) p, int n);  /*选择排序,对从p开始连续n个节点进行选择排序*/
     void insertionSort(Posi(T) p, int n);  /*插入排序,对从p开始连续的n个节点进行插入排序*/
 
@@ -101,7 +101,7 @@ private:
 	Rank rank(Posi(T) p) const;	/*获取节点位置p的节点在当前列表中的秩*/
 };
 
-#include "List_implement.h"
+#include "List_implementation.h"
 
 }
 

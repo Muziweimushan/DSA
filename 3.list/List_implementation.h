@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef __LIST_IMPLEMENT_H__
-#define __LIST_IMPLEMENT_H__
+#ifndef __LIST_IMPLEMENTATION_H__
+#define __LIST_IMPLEMENTATION_H__
 
 #include <iostream>
 using namespace std;
@@ -464,8 +464,15 @@ void List<T>::insertionSort(Posi(T) p, int n)
 template < typename T >
 void List<T>::sort()
 {
-	//insertionSort(m_header->m_succ, m_size);
-	selectionSort(m_header->m_succ, m_size);
+	sort(m_header->m_succ, m_size);
+}
+
+template < typename T >
+void List<T>::sort(Posi(T) p, int n)
+{
+	//insertionSort(p, n);
+	//selectionSort(p, n);
+	mergeSort(p, n);
 }
 
 template < typename T >
@@ -560,6 +567,106 @@ int List<T>::disordered() const
 	}
 
 	return ret;
+}
+
+/*实现两个列表的二路归并,一个列表是当前列表的p位置起,长度为n所构成的列表,另一个列表是l的q位置起,长度为m的子列表*/
+template < typename T >
+void List<T>::merge(Posi(T) &p, int n, List<T> &l, Posi(T) q, int m)
+{
+	/*内部接口,参数合法性不再做检查,上一层接口使用前需保证参数的合法性,待排序节点个数要合法,两个归并的列表不能重叠*/
+	/*类似于向量的归并排序最终版,这里的意图就是将l中从q开始(包括q)的m个节点合并到当前列表中*/
+	Posi(T) head = p->m_pred;
+
+	while (m > 0)
+	{
+#if 1
+		if ((n <= 0) || (p->m_data > q->m_data))
+		{
+			/*当前列表所有待排序节点都遍历完或者节点q的元素值小于p的元素值,将q从l中取出来作为p的前驱插入到当前列表中*/
+			Posi(T) toDel = q;
+			q = q->m_succ;	/*q移向下一个节点*/
+			m--;
+			/*插入*/
+			p->insertAsPred(toDel->m_data);
+			l.remove(toDel);
+		}
+		else
+		{
+			/*p中还有节点待排序而且当前节点p的元素值大于等于节点q的元素值,这时候p继续后移*/
+			p = p->m_succ;
+			n--;
+			/*这里增加一个检查,检查下一轮比较的节点p跟q的位置是否相等,如果是可以直接跳出循环,意图就是在列表归并排序时可以进一步的减少运算量*/
+			if (q == p)
+				break;
+		}
+#else
+		/*邓公示例代码中的写法*/
+		if ((0 < n) && (p->m_data <= q->m_data))
+		{
+			if (q == (p = p->m_succ))
+			{
+				break;
+			}
+			n--;
+		}
+		else
+		{
+			Posi(T) toDel = q;
+			insertBefore(p, q->m_data);
+			q = q->m_succ;
+			l.remove(toDel);
+			//insertBefore(p, l.remove((q = q->m_succ)->m_pred));
+			m--;
+		}
+#endif
+	}
+
+	p = head->m_succ;	/*这里返回归并后的起点*/
+}
+
+template < typename T >
+void List<T>::merge(List<T> &l)
+{
+	/*这是一个public接口,意思是将另一个列表l归并到当前列表中,使用二路归并的方式*/
+	/*需要做参数检查*/
+	if (this != &l)
+	{
+		/*二路归并要求两路输入必须有序*/
+		if (0 != disordered() || 0 != l.disordered())
+		{
+			THROW_EXCEPTION(InvalidOperationException, "Trying to mering two out-of-ordered list ...");
+		}
+		merge(m_header->m_succ, m_size, l.first(), l.m_size);
+	}
+	/*对自己做归并等于不用做*/
+}
+
+template < typename T >
+void List<T>::mergeSort(Posi(T) &p, int n)
+{
+	/*protected接口不做参数合法性检查,调用此接口的必须保证参数合法性*/
+	/*归并排序,与向量的差不多,先砍半递归的做,最后两个有序的再调用二路归并接口做合并即可*/
+	/*平凡情况,节点个数小于2必然有序*/
+
+	if (n < 2)
+	{
+		return;
+	}
+	int middle = n >> 1;
+
+	/*列表的循秩访问...*/
+	Posi(T) q = p;
+	for (int i = 0; i < middle; i++)
+		q = q->m_succ;
+
+	/*假设p的秩为r, 前半段为 l[r, r + middle), 后半段为 l[r + middle, r + n)*/
+	mergeSort(p, middle);
+
+	/*后半段归并,前半段长度为middle,总体有n个,后半段个数为n - middle*/
+	mergeSort(q, n - middle);
+
+	/*最后对两段有序的列表做二路归并*/
+	merge(p, middle, *this, q, n - middle);
 }
 
 template < typename T >

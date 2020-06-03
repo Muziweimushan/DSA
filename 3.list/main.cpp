@@ -31,23 +31,41 @@ public:
 
 void test_sort()
 {
-	MyLib::List<int> l;
 
 	srand(time(NULL));
 
-	for (int i = 0; i < 5; i++)
+	int loop_count = rand() % 999;
+	cout << "loop_count = " << loop_count << endl;
+
+	while (0 < loop_count--)
 	{
-		l.insertAsLast(rand() % 1000);
+		if (0 == loop_count % 100)
+			cout << "loop_count = " << loop_count << endl;
+		MyLib::List<int> l;
+		int elem_count = rand() % 9999;
+		for (int i = 0; i < elem_count; i++)
+		{
+			l.insertAsLast(rand());
+		}
+		//l.traverse(Test_traverse());
+		//l.deduplicate();
+		//cout << "disorder : " << l.disordered() << endl;
+		l.sort();
+
+		//cout << "sort result : " << endl;
+		//l.traverse(Test_traverse());
+
+		//cout << "disorder : " << l.disordered() << endl;
+		if (0 != l.disordered())
+		{
+			cout << "test failed ..." << endl;
+			break;
+		}
+		else
+			//cout << "test success ..." << endl;
+			;
 	}
-	//l.traverse(Test_traverse());
-	//l.deduplicate();
-	//cout << "disorder : " << l.disordered() << endl;
-	l.sort();
 
-	cout << "sort result : " << endl;
-	l.traverse(Test_traverse());
-
-	cout << "disorder : " << l.disordered() << endl;
 }
 
 void test_selectMax()
@@ -80,6 +98,7 @@ int main(void)
 {
 	//test_selectMax();
 	test_sort();
+
 #if 0
 	MyLib::List<int> l;
 
