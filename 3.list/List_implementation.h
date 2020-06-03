@@ -579,7 +579,7 @@ void List<T>::merge(Posi(T) &p, int n, List<T> &l, Posi(T) q, int m)
 
 	while (m > 0)
 	{
-#if 1
+#if 1	/*自己实现的逻辑,与邓公的类似,不过顺序反了罢了*/
 		if ((n <= 0) || (p->m_data > q->m_data))
 		{
 			/*当前列表所有待排序节点都遍历完或者节点q的元素值小于p的元素值,将q从l中取出来作为p的前驱插入到当前列表中*/
@@ -587,7 +587,8 @@ void List<T>::merge(Posi(T) &p, int n, List<T> &l, Posi(T) q, int m)
 			q = q->m_succ;	/*q移向下一个节点*/
 			m--;
 			/*插入*/
-			p->insertAsPred(toDel->m_data);
+			//p->insertAsPred(toDel->m_data);	/*一开始这么写的,然后发现内存泄漏了,是因为不能这么弄,这样弄不会修改m_size的值,然后后面的remove会修改,导致出错了,查了很久...*/
+			insertBefore(p, toDel->m_data);
 			l.remove(toDel);
 		}
 		else
@@ -640,8 +641,13 @@ void List<T>::merge(List<T> &l)
 	}
 	/*对自己做归并等于不用做*/
 }
-
-template < typen>
+#if 0
+template < typename T >
+void List<T>::mergeSort(Posi(T) p, int n)
+{
+	mergeSortInner(p, n);
+}
+#endif
 
 template < typename T >
 void List<T>::mergeSort(Posi(T) &p, int n)

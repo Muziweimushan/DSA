@@ -75,7 +75,7 @@ protected:
     void mergeSort(Posi(T) &p, int n);   /*归并排序,对从p开始连续n个节点进行归并排序*/
     void selectionSort(Posi(T) p, int n);  /*选择排序,对从p开始连续n个节点进行选择排序*/
     void insertionSort(Posi(T) p, int n);  /*插入排序,对从p开始连续的n个节点进行插入排序*/
-
+    //void mergeSortInner(Posi(T) &p, int n);
 private:
     Rank m_size;/*列表的规模*/
     /*

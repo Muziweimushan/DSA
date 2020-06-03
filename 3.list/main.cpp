@@ -12,7 +12,7 @@
 using namespace std;
 using namespace MyLib;
 
-int count = 0;
+static int g_count = 0;
 
 class Test_traverse
 {
@@ -21,8 +21,8 @@ public:
 
 	void operator () (int &e) const
 	{
-		cout << "value = " << e << ", count = " << count << endl;	
-		count++;	
+		cout << "value = " << e << ", count = " << g_count << endl;	
+		g_count++;
 	}
 
 	~Test_traverse() {}
@@ -44,6 +44,7 @@ void test_sort()
 			cout << "loop_count = " << loop_count << endl;
 		MyLib::List<int> l;
 		int elem_count = rand() % 10;
+		cout << "elem count = " << elem_count << endl;
 		for (int i = 0; i < elem_count; i++)
 		{
 			l.insertAsLast(rand());
@@ -53,6 +54,7 @@ void test_sort()
 		//cout << "disorder : " << l.disordered() << endl;
 		l.sort();
 
+		cout << "size = " << l.size() << endl;
 		//cout << "sort result : " << endl;
 		//l.traverse(Test_traverse());
 
