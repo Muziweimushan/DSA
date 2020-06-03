@@ -465,7 +465,7 @@ template < typename T >
 void List<T>::sort()
 {
 	/*当长度小于2时不需要排序*/
-	if (m_size < 2)
+	if (m_size >= 2)
 		sort(m_header->m_succ, m_size);
 }
 
@@ -473,8 +473,8 @@ template < typename T >
 void List<T>::sort(Posi(T) p, int n)
 {
 	//insertionSort(p, n);
-	//selectionSort(p, n);
-	mergeSort(p, n);
+	selectionSort(p, n);
+	//mergeSort(p, n);
 }
 
 template < typename T >
