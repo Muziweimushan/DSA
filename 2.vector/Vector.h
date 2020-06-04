@@ -111,6 +111,27 @@ public:
 		return m_elem[pos];	
 	}
 
+    T &get(Rank r)
+    {
+        if (r < 0 || r >= m_size)
+        {
+            THROW_EXCEPTION(IndexOutOfBoundException, "Tring to get element from vector with invalid index ..."); 
+        }
+
+        return m_elem[r];
+    }
+
+    /*将向量中秩为r的单元值设置为e*/
+    void put(const T &e, Rank r)
+    {
+        if (r < 0 || r >= m_size)
+        {
+            THROW_EXCEPTION(IndexOutOfBoundException, "Setting invlid elem ..."); 
+        } 
+
+        m_elem[r] = e;
+    }
+
 	/*将任意的元素e插入到向量中秩为r的单元中,返回元素e所在的秩*/
 	Rank insert(Rank r, const T &e)
 	{
@@ -126,7 +147,7 @@ public:
 			}
 			m_elem[pos] = e;
 			m_size++;
-			ret = pos;
+			ret = r;
 		}
 		else
 		{
@@ -136,8 +157,18 @@ public:
 		return ret;
 	}
 
+	/*固定插入到向量的末尾*/
+	Rank insert(const T &e)
+	{
+		return insert(m_size, e);
+	}
+
 	int size() const { return m_size; }
 	int capacity() const { return m_capacity; }
+	void clean()
+	{
+		m_size = 0;
+	}
 
 	static void permute(Vector<T> &v)
 	{
@@ -178,7 +209,7 @@ public:
 		/*0 <= lo < hi <= size*/
 		if (0 <= lo && lo < hi && hi <= m_size)
 		{
-			/*自后向前查找,从而能满足返回相同元素的秩的最大值的要求*/
+			/*自后向前查找*/
 			while ((--hi >= lo) && (e != m_elem[hi]))
 			{
 				;
@@ -230,7 +261,7 @@ public:
 		{
 			ret = m_elem[r];
 			/*
-				调用删除区间接口即可
+			*   调用删除区间接口即可
 			*	注意这里的设计是将删除单个元素作为区间删除的一个特例
 			*	而不将区间删除设计为循环(hi - lo)次调用删除单个,是因为如果单独删除的话,每次都需要拷贝后面的元素
 			*	使得时间复杂度变成 (hi - lo) * (size - hi)
@@ -268,12 +299,12 @@ public:
 	
 	/*
 	 * 遍历函数
-	 * 模板类型VST必须重载operator (T), visit相当于一个函数指针, void (*pVisit)(T &e);
+	 * 模板类型VST必须重载operator (T) const, visit相当于一个函数指针, void (*pVisit)(T &e);
 	 * 据说这样的写法更具通用性
 	 * VST称为函数对象TOT
 	 */
 	template < typename VST >
-	void traverse(VST &visit)
+	void traverse(const VST &visit)
 	{
 		for (int i = 0; i < m_size; i++)
 		{
@@ -305,7 +336,7 @@ public:
         Rank j = 0;
         
         /*以i下标的为基点,向后找,因为是有序的,我们只需要保留i的元素,后面一直找找到与v[i]不一样为止,这时候更新i*/
-        while (++j < m_size)
+        while (++j < m_size)/*从第1个元素开始*/
         {
             if (m_elem[i] != m_elem[j])
             {
@@ -320,22 +351,30 @@ public:
     }
 
 	/*有序向量的查找*/
-	Rank search(T const &e, Rank lo, Rank hi)
-	{
-		Rank ret = -1;
-		/*0 <= lo < hi <= size*/
-		if (lo >= 0 && hi > lo && hi <= m_size)
-		{
-			ret = biSearch(m_elem, e, lo, hi);	
-		}
-		else
-		{
-			THROW_EXCEPTION(IndexOutOfBoundException, "searching element from a ordered vertor with invalid index ...");	
-		}
-		return ret;
-	}
+    Rank search(T const &e, Rank lo, Rank hi)
+    {
+	    Rank ret = -1;
+	    /*0 <= lo < hi <= size*/
+	    if (lo >= 0 && hi > lo && hi <= m_size)
+	    {
+		    ret = biSearch(m_elem, e, lo, hi);	
+		    //ret = fibSearch(m_elem, e, lo, hi);	
+	    }
+	    else
+	    {
+		    THROW_EXCEPTION(IndexOutOfBoundException, "searching element from a ordered vertor with invalid index ...");	
+	    }
+	    return ret;
+    }
 
-	~Vector() { delete [] m_elem; }
+    /*向量的排序*/
+    void sort(void)
+    {
+		if (m_size > 0)
+	   		mergeSort(m_elem, 0, m_size);	/*bubbleSort_V2*/
+    }
+
+    ~Vector() { delete [] m_elem; }
 
 protected:
 	int m_size;/*向量有效元素个数,即向量的规模*/
@@ -433,12 +472,12 @@ protected:
 		}
 		/*
 		 *	每次循环,都必然能保证v[0, lo)都满足小于等于e的要求
-		 *	[hi, n)的元素都满足大于e的要求
+		 *	[hi, n)的元素都满足大于e的要求,换而言之,v[hi]总是大于e的最小者
 		 *	单看前面第一条结论,v[lo - 1]就是向量[0, lo)中最后一个小于等于e的元素
-		 *	如果向量中存在等于e的元素(一个或多个都ok),这些元素的集合中必然有一个是v[lo - 1]
+		 *	如果向量中存在等于e的元素(一个或多个都ok),这些元素的集合中必然有一个是v[lo - 1],且最大的秩为lo - 1
 		 */
 
-		/*循环退出时,hi == lo, v[lo]的值必定大于e,所以v[lo - 1]必定小于等于e,而且必然是整个有序向量中最后一个小于等于e的元素*/
+		/*循环退出时,hi == lo, v[lo]的值必定大于e(结论2),所以v[lo - 1]必定小于等于e,而且必然是整个有序向量中最后一个小于等于e的元素*/
 		/*因此,本算法能保证,如果向量中确实有e这个元素,返回值必然是所有值为e的元素集合中秩最大的值*/
 		return --lo;
 	}
@@ -495,6 +534,108 @@ protected:
 			else return mi;
 		}	
 		return -1;
+	}
+	
+	/*扫描交换算法版本1,供起泡排序算法调用,完成一次扫描交换*/
+	bool bubble(T *v, Rank lo, Rank hi)
+	{
+		bool sorted = true;
+
+		while (++lo < hi)
+		{
+			if (v[lo] < v[lo - 1])
+			{
+				/*逆序,交换它们,同时标志位置为false*/
+				sorted = false;
+				swap(v[lo], v[lo - 1]);
+			}
+		}
+
+		return sorted;	
+	}
+
+	/*起泡排序版本一*/
+	void bubbleSort_V1(T *v, Rank lo, Rank hi)
+	{
+		while (!bubble(v, lo, hi)) /*如果扫描一次后不是有序的,就继续*/
+		{
+			/*每一轮扫描交换后,向量中最后一个元素必然就位,因此hi可以减一,也就是减治法*/
+			hi--;
+		}
+	}
+
+	/*扫描交换的版本二*/
+	Rank bubble_V2(T *v, Rank lo, Rank hi)
+	{
+		Rank last = lo;
+
+		while (++lo < hi)
+		{
+			if (v[lo] < v[lo - 1])
+			{
+				/*如果找到一对逆序对,交换它们,然后更新一下last*/
+				swap(v[lo], v[lo - 1]);
+				last = lo;
+			}
+		}	
+
+		return last;		
+	}
+	
+	/*起泡排序算法入口,版本2*/
+	void bubbleSort_V2(T *v, Rank lo, Rank hi)
+	{
+		while (lo < hi)
+		{
+			hi = bubble_V2(v, lo, hi);
+		}	
+	}
+
+	void merge(T *v, T *helper, Rank lo, Rank mi, Rank hi)
+	{
+		int la = mi - lo;
+		int lb = la;
+		int lc = hi - mi;
+		T *B = helper;;
+		T *A = v + lo;
+		T *C = v + mi;
+
+		for (int i = 0; i < la; i++)
+			B[i] = A[i];
+
+		for (int i = 0, j = 0, k = 0; j < lb; )
+		{
+			/*这里判断B[i]跟C[j]用的是小于等于,之所以要判断等于就是为了使得整个排序是稳定的*/
+			A[i++] = ((k >= lc) || (B[j] <= C[k])) ? B[j++] : C[k++];
+		}
+	}
+	
+	void mergeSort(T *v, T *helper,  Rank lo, Rank hi)
+	{
+		/*
+		 * 归并排序的思路,先不停的二分向量,直到每个子向量的元素个数为1,也就是递归基
+		 * 这时候依次的对左右两侧向量进行二路归并
+		 */
+		/*首先处理递归基,也就是只有一个元素的情况,因为这时候向量必然是有序的*/
+		if (hi - lo < 2)
+			return;
+		Rank mi = lo + ((hi - lo) >> 1);/*取中点,这样写可以避免溢出*/
+
+		mergeSort(v, lo, mi);/*对[lo, hi)的子向量递归进行归并排序*/
+		mergeSort(v, mi, hi);
+		/*以上两步返回后, v[lo, mi)是有序的, v[mi, hi)有序的,然后再做二路归并即可以使得整个区间都是有序的*/
+		/*流程上还能再优化一下,因为mi的左右两侧都是有序的,因此我们判断一下mi - 1跟mi的元素之间的关系,如果v[mi - 1] < v[mi],就没有必要做二路归并了*/
+		if (v[mi - 1] > v[mi])
+			merge(v, helper, lo, mi, hi);
+	}
+
+	void mergeSort(T *v, Rank lo, Rank hi)
+	{
+		T *helper = new T[hi - lo];
+
+		mergeSort(v, helper, lo, hi);
+
+		delete [] helper;	
 	}
 
 private:

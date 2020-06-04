@@ -117,11 +117,37 @@ static void test_rank(void)
 
 	//cout << l.rank(pos) << endl;
 }
+#include "Vector.h"
+static void test_vector_sort()
+{
+	MyLib::Vector<int> v;
+	
+	srand(time(NULL));
+
+	for (int i = 0; i < 10; i++)
+		v.insert(0, rand() % 1000);
+
+	for (int i = 0; i < v.size(); i++)
+	{
+		cout << "v[" << i << "] = " << v[i] << endl;
+	}
+
+	v.sort();
+
+	cout << "after sort :" << endl;
+
+	for (int i = 0; i < v.size(); i++)
+	{
+		cout << "v[" << i << "] = " << v[i] << endl;
+	}
+
+}
 
 int main(void)
 {
 	//test_selectMax();
-	test_sort();
+	//test_sort();
+	test_vector_sort();
 
 #if 0
 	MyLib::List<int> l;
