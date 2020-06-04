@@ -648,16 +648,16 @@ protected:
 		for (int i = 1; i < hi - lo; i++)
 		{
 			Rank pos = search(v[i], 0, i);	/*在前面一段向量中找,定位到最后一个不大于当前元素的秩,然后插入到这个元素的后面即可*/
-			cout << "pos = " << pos << endl;
-			cout << "v[pos] = " << v[pos] << endl;
+			//cout << "pos = " << pos << endl;
+			//cout << "v[pos] = " << v[pos] << endl;
 			pos++;	/*++才是最终要插入的位置*/
 			if (pos != i)
 			{
-				T tmp = v[pos];
+				T tmp = v[i];
 				for (int j = i; j > pos; j--)	/*一贯的套路,从后向前拷不会覆盖元素*/
 				{
 					v[j] = v[j - 1];
-					cout << "j = " << j << endl;
+					//cout << "v[" << j << "] = v[" << j - 1 << "] ..." << endl;
 				}
 				v[pos] = tmp;
 			}
