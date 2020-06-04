@@ -6,7 +6,6 @@
 #include <iostream>
 using namespace std;
 
-
 template < typename T >
 List<T>::List()
 {
@@ -51,9 +50,8 @@ T &List<T>::operator [] (Rank r) const
 template < typename T >
 Rank List<T>::rank(Posi(T) p) const
 {
-	Rank ret = -1;
-	Rank count = 0;
-	Posi(T) start = m_header->m_succ;
+	Rank ret = -1;/*header的秩就是-1*/
+	Posi(T) start = m_header;
 
 	/*从首节点一直遍历到尾节点*/
 	while (NULL != start)
@@ -61,13 +59,12 @@ Rank List<T>::rank(Posi(T) p) const
 		if (start == p)
 		{
 			/*找到了*/
-			ret = count;
 			break;
 		}
-		count++;
+		ret++;
 		start = start->m_succ;
 	}
-
+	/*ret的合法取值范围是[-1, size], 当ret = size + 1表明p不在列表中, ret == -1表明p是列表的header, ret == size表明p是列表的trailer*/
 	return ret;
 }
 
@@ -118,8 +115,11 @@ Posi(T) List<T>::find(const T &e, Posi(T) p, int n) const
 	Rank r = rank(p);
 	Posi(T) ret = NULL;
 
-	/* 0 <= rank(p) && rank(p) + n < size*/
-	if ((r >= 0) && (r + n < m_size) && (n >= 0) && (valid(p)))
+	/*
+	 * 从p的后继开始,向后找元素值为e的节点,由此p可以是header,
+	 * 然后p后面必须要有n个有效元素, 即rank(p) + n < size
+	 */
+	if ((n >= 0) && (r >= -1) && (r + n < m_size))/*不再需要调用valid接口,因为这样可以满足*/
 	{
 		while (n > 0)
 		{
@@ -156,7 +156,7 @@ Posi(T) List<T>::first() const
 template < typename T >
 Posi(T) List<T>::insertAsFirst(const T &e)
 {
-	Posi(T) ret = m_header->insertAsSucc(e);	/*作为首节点的后继插入即可*/
+	Posi(T) ret = m_header->insertAsSucc(e);	/*作为头节点的后继插入即可*/
 	++m_size;
 	return ret;	
 }
@@ -283,15 +283,23 @@ int List<T>::deduplicate()
 	Posi(T) p = m_header->m_succ;
 	Rank r = 0;
 
-	/*循环次数为长度n,最坏情况是没有重复的,这样的话总需要1 + 2 + 3 + ... + n次,算术级数,复杂度为末项平方即 O(n^2)*/
+	/*
+	 * 以下迭代,每一次循环,都有正确性描述如下:
+	 * 	当前节点p的所有前驱均互不相同
+	 * 同时每一次迭代,问题规模减一,满足单调性,因此算法得证
+	 */
+	/*
+	 * 循环次数为长度n,最坏情况是没有重复的,这样的话总需要1 + 2 + 3 + ... + n次,算术级数,复杂度为末项平方即 O(n^2)
+	 * 最好情况就是都相同,这样p前驱永远只有一个元素
+	 */
 	while (m_trailer != p)
 	{
-		Posi(T) toDel = find(p->m_data, r, p);	/*find接口复杂度正比与长度r*/
+		Posi(T) toDel = find(p->m_data, r, p);	/*find接口复杂度正比于长度r*/
 
 		if (NULL != toDel)
-			remove(toDel);	/*常数阶的复杂度*/
+			remove(toDel);	/*如果存在,保留当前节点,重复节点toDel删掉,需要常数阶的复杂度*/
 		else
-			r++;
+			r++;	/*如果不存在,则p指向下一个,这时候待查找区间长度就需要加一,也就是r要加一*/
 		/*
 		 * 与向量的不一样,这里要更新p的值,
 		 * 因为在列表中不应该通过Rank访问对应的元素l[r],而需要通过位置p
@@ -306,6 +314,12 @@ template < typename T >
 Rank List<T>::size() const
 {
 	return m_size;
+}
+
+template < typename T >
+bool List<T>::empty() const
+{
+	return (0 == m_size);
 }
 
 template < typename T >
@@ -361,8 +375,11 @@ Posi(T) List<T>::search(const T &e, int n, Posi(T) p) const
 	Rank r = rank(p);
 	Posi(T) ret = NULL;
 
-	/*从p开始向前找n,找出其中最后一个不大于e的元素的位置*/
-	/*首先是n的值必须大于等于0,其次是p前面要有n个有效的前驱(visible)*/
+	/*
+	 * 从p开始向前找n,找出其中最后一个不大于e的元素的位置
+	 * 首先是n的值必须大于等于0,其次是p前面要有n个有效的前驱(visible)
+	 * 此外,由于查找操作不包括p本身,因此允许p是trailer,因此支持整个列表的查找
+	 */
 	if (n >= 0 && r >= 0 && r >= n - 1 && r <= m_size)
 	{
 		ret = p->m_pred;
@@ -371,6 +388,10 @@ Posi(T) List<T>::search(const T &e, int n, Posi(T) p) const
 			if (ret->m_data <= e)
 			{
 				/*找到*/
+				/*
+				 * 正确性也是显而易见的:
+				 * 因为列表是有序的,而且迭代从后向前迭代,于是乎,遇到的第一个小于等于e的节点,这个节点的所有后继必然都大于e,这个节点的所有有效前驱必然都小于等于e,那么这个节点就是所求
+				 */
 				break;
 			}
 			ret = ret->m_pred;
@@ -411,6 +432,7 @@ Posi(T) List<T>::search(const T &e, Posi(T) p, int n) const
 			if (e <= ret->m_data)
 			{
 				/*找到立即返回,符合接口设计语义*/
+				/*合法性是显然的,因为列表是有序的,整个迭代从前向后遍历,找到的第一个大于等于查找元素的节点必然就是第一个不小于e的节点位置,这个节点的所有有效前驱的元素值必然小于e,从这个节点开始的所有节点必然大于等于e,于是乎当前节点就是所求*/
 				break;
 			}
 			ret = ret->m_succ;
@@ -429,6 +451,7 @@ Posi(T) List<T>::search(const T &e, Posi(T) p, int n) const
 	return ret;
 }
 
+#if 0
 template < typename T >
 void List<T>::insertionSort(Posi(T) p, int n)
 {
@@ -460,6 +483,41 @@ void List<T>::insertionSort(Posi(T) p, int n)
 		THROW_EXCEPTION(InvalidParameterException, "insertion-sort with invalid params ...");
 	}
 }
+#endif
+
+template < typename T >
+void List<T>::insertionSort(Posi(T) p, int n)
+{
+	/*实质就是对  l[p, p + n)进行插入排序*/
+	/*参数检查:检查p是否合法,从秩来说, 必须要满足0 <= p < p + n <= size*/
+	Rank r = rank(p);
+	//cout << "r = " << r << endl;
+
+	if (valid(p) && n >= 0 && r >= 0 && r + n <= m_size)
+	{
+		/*
+		 * 插入排序的思想:
+		 * 将待排序的区间分为两段,前面一段是已经有序的,后面一段是待排序的,开始时前面一段为空
+		 * 通过迭代,将后面一段的首元素插入到前面一段的有序位置上,迭代完成后整个区间自然就是有序的了
+		 * 当然插入时是有要求的,需要插入到前面一段的最后一个不大于当前待插入元素值的后面,这个通过已有的接口可以轻松实现
+		 */
+		for (int i = 0; i < n; i++)	/*平均分布的情况下,整体O(n^2)*/
+		{
+			//cout << "i = " << i << endl;
+			Posi(T) pos = search(p->m_data, i, p);	/*前面一段是有序的,通过search接口查找,最坏情况(也就是完全逆序,每次都要走完i次)O(i)的复杂度*/
+			/*将当前元素从后面的区间中删掉,然后指向下一个*/
+			Posi(T) toDel = p;
+			p = p->m_succ;
+			removeFromList(toDel);
+			/*然后将这个节点插入到pos的后面*/
+			insertAfter(pos, toDel);
+		}	
+	}
+	else
+	{
+		THROW_EXCEPTION(InvalidParameterException, "insertion-sort with invalid params ...");
+	}
+}
 
 template < typename T >
 void List<T>::sort()
@@ -472,8 +530,22 @@ void List<T>::sort()
 template < typename T >
 void List<T>::sort(Posi(T) p, int n)
 {
+	int index = rand() % 3;
+
+	/*抄袭书里边的写法,实际上是按照需要选择合适的排序算法,这样写可以测试所有的排序方法*/
+	switch (index)
+	{
+		case 0:
+			insertionSort(p, n);
+			break;
+		case 1:
+			selectionSort(p, n);
+			break;
+		default:
+			mergeSort(p, n);
+	}
 	//insertionSort(p, n);
-	selectionSort(p, n);
+	//selectionSort(p, n);
 	//mergeSort(p, n);
 }
 
@@ -481,8 +553,9 @@ template < typename T >
 Posi(T) List<T>::selectMax(Posi(T) p, int n) const
 {
 	Posi(T) ret = NULL;
+	Rank r = rank(p);
 	/*合法性检查:p必须是visible的, 然后就是p包括自己的总长不能超过有效长度*/
-	if (valid(p) && rank(p) + n <= m_size)
+	if (valid(p) && r >= 0 && r + n <= m_size)
 	{
 		Posi(T) cur = p;	/*初始化指向第一个,也就是p自己*/
 		ret = p;	/*返回值初始化为第一个*/
@@ -510,7 +583,7 @@ Posi(T) List<T>::selectMax() const
 {
 	return selectMax(m_header->m_succ, m_size);
 }
-
+#if 0
 template < typename T >
 void List<T>::selectionSort(Posi(T) p, int n)
 {
@@ -550,16 +623,59 @@ void List<T>::selectionSort(Posi(T) p, int n)
 		THROW_EXCEPTION(InvalidParameterException, "selection-sort with invalid params ...");
 	}
 }
+#endif
+
+template < typename T >
+void List<T>::selectionSort(Posi(T) p, int n)
+{
+	/*合法性检查,选择排序合法输入区间为[0, size), 且 p + n <= size*/
+	Rank r = rank(p);
+	if (valid(p) && n >= 0 && r >= 0 && r + n <= m_size)
+	{
+		/*
+		 * 选择排序的思想是:
+		 * 将待排序区间分为两段,前面一段是无序的,后面一段是有序的,初始状态后面一段节点个数为0
+		 * 每次迭代,通过selectMax从前面区间中挑选最大的节点,然后将这个节点插入到后面区间的首位,
+		 * 选择排序的正确性是显而易见的,同时,通过规范selectMax接口,使得整个选择排序是稳定的
+		 */
+		
+		/*注意head的取值,不能指向p,因为有可能p就是最大的,那这时候p就需要移动了,因此head应当指向p的前驱,p的前驱在本次排序过程中是不涉及的*/
+		Posi(T) head = p->m_pred;
+		
+		/*同样的tail也应当选择为l[rank(p) + n], 这个节点也是不涉及排序的*/
+		Posi(T) tail = p;
+		for (int i = 0; i < n; i++)
+			tail = tail->m_succ;
+		
+		while (n > 1)
+		{
+			Posi(T) max = selectMax(head->m_succ, n);
+			//T elem = remove(max);
+			Posi(T) toDel = removeFromList(max);
+			insertBefore(tail, toDel);
+
+			/*tail还需要前移一格,因为插入了个新的节点到它的前面了*/
+			tail = tail->m_pred;
+
+			n--;
+		}	
+	}
+	else
+	{
+		THROW_EXCEPTION(InvalidParameterException, "selection-sort with invalid params ...");
+	}
+}
 
 template < typename T >
 int List<T>::disordered() const
 {
 	int ret = 0;
-	
+
+	/*平凡情况:长度不足二的必然有序*/	
 	if (m_size < 2)
 		return 0;
-	
-	Posi(T) start = m_header->m_succ->m_succ;
+
+	Posi(T) start = m_header->m_succ->m_succ;/*非平凡情况必然可以访问到L[1]*/
 	for (int i = 1; i < m_size; i++)
 	{
 		if (start->m_pred->m_data > start->m_data)
@@ -590,8 +706,10 @@ void List<T>::merge(Posi(T) &p, int n, List<T> &l, Posi(T) q, int m)
 			m--;
 			/*插入*/
 			//p->insertAsPred(toDel->m_data);	/*一开始这么写的,然后发现内存泄漏了,是因为不能这么弄,这样弄不会修改m_size的值,然后后面的remove会修改,导致出错了,查了很久...*/
-			insertBefore(p, toDel->m_data);
-			l.remove(toDel);
+			//insertBefore(p, toDel->m_data);
+			//l.remove(toDel);
+			removeFromList(toDel);
+			insertBefore(p, toDel);
 		}
 		else
 		{
@@ -678,5 +796,44 @@ List<T>::~List()
 	clear();
 }
 
+template < typename T >
+Posi(T) List<T>::removeFromList(Posi(T) p)
+{
+	Posi(T) toDel = p;
+
+	toDel->m_pred->m_succ = toDel->m_succ;
+	toDel->m_succ->m_pred = toDel->m_pred;
+
+	m_size--;
+
+	return toDel;
+}
+
+template < typename T >
+Posi(T) List<T>::insertBefore(Posi(T) p, Posi(T) n)
+{
+	/*为了效率考虑,且本接口是private的,不做检查*/
+	p->m_pred->m_succ = n;
+	n->m_pred = p->m_pred;
+	p->m_pred = n;
+	n->m_succ = p;
+
+	m_size++;
+
+	return n;
+}
+
+template < typename T >
+Posi(T) List<T>::insertAfter(Posi(T) p, Posi(T) n)
+{
+	p->m_succ->m_pred = n;
+	n->m_succ = p->m_succ;
+	p->m_succ = n;
+	n->m_pred = p;
+
+	m_size++;
+
+	return n;
+}
 
 #endif

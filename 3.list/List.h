@@ -27,11 +27,12 @@ public:
     bool valid(Posi(T) p) const;    /*判断位置p是否在当前列表中是否是合法位置*/
 	
 	/*无序列表的查找,返回NULL表示没找到*/
+	/*无序列表的查找操作find,在最好的情况下复杂度为O(1),最坏的情况下为O(n)*/
     Posi(T) find(const T &e) const; /*无序列表的查找*/
     Posi(T) find(const T &e, int n, Posi(T) p) const; /*在无序列表中元素p的前n个前驱(不包括p本身)中查找元素e*/
     Posi(T) find(const T &e, Posi(T) p, int n) const; /*在无序列表中元素p的后n个后继(不包括p本身)中查找元素e*/
 
-	/*有序列表的查找*/
+	/*有序列表的查找,由于列表本身遍历只能沿一个方向一个一个节点遍历,所以不管列表是否有序查找的复杂度都无法降低,这是与向量不一样的*/
 	/*整个列表的查找,返回最后一个不大于e的元素的位置,调用者需要通过valid接口判断返回值是否合法*/
     Posi(T) search(const T &e) const;
 
@@ -97,13 +98,26 @@ private:
 
     InnerNodeType m_node_header;
     InnerNodeType m_node_trailer;
+	/*
+	 * 获取节点位置p的节点在当前列表中的秩
+	 * 对于有效节点(visible),它们的rank返回值为[0, size() - 1]
+	 * 对于列表中所有节点,他们的rank接口返回值合法范围是[-1, size()],-1表明当前节点是头节点,size()表明当前节点是末节点
+	 */
+	Rank rank(Posi(T) p) const;
 
-	Rank rank(Posi(T) p) const;	/*获取节点位置p的节点在当前列表中的秩*/
+	/*
+	 * added by liweibin:
+	 * 下面remove和insert接口不在书中,主要用于排序时,当泛指类型T的拷贝操作很耗时时,排序时经常remove和insert就很耗时了,而且伴随着节点的new和delete,这里增加remove接口,使得删除时将节点从列表中删除,但是节点不释放,而是作为返回值返回,插入就类比了,可以不需要new操作,仅用于内部用
+	 */
+	Posi(T) removeFromList(Posi(T) p);
+	/*将节点n作为p的前驱插入到当前列表中*/
+	Posi(T) insertBefore(Posi(T) pos, Posi(T) n);
+	Posi(T) insertAfter(Posi(T) p, Posi(T) n);
 };
 
 #include "List_implementation.h"
 
-}
 
+}
 
 #endif

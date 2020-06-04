@@ -40,10 +40,10 @@ void test_sort()
 
 	while (0 < loop_count--)
 	{
-		if (0 == loop_count % 100)
+		if (0 == loop_count % 10)
 			cout << "loop_count = " << loop_count << endl;
 		MyLib::List<int> l;
-		int elem_count = rand() % 9999;
+		int elem_count = rand() % 999;
 		//cout << "elem count = " << elem_count << endl;
 		for (int i = 0; i < elem_count; i++)
 		{
@@ -53,6 +53,12 @@ void test_sort()
 		//l.deduplicate();
 		//cout << "disorder : " << l.disordered() << endl;
 		l.sort();
+
+		if (l.size() != elem_count)
+		{
+			cout << "elem count is not correct ..." << endl;
+			break;
+		}
 
 		//cout << "size = " << l.size() << endl;
 		//cout << "sort result : " << endl;
@@ -95,6 +101,21 @@ void test_selectMax()
 	pos = pos->m_succ;
 	if (l.valid(pos))
 		cout << "succ data = " << pos->m_data << endl;
+}
+
+static void test_rank(void)
+{
+
+	MyLib::List<int> l;
+
+	l.insertAsLast(1);
+
+	Posi(int) pos = l.last();
+
+	pos = pos->m_succ;
+	pos = pos->m_succ;
+
+	//cout << l.rank(pos) << endl;
 }
 
 int main(void)

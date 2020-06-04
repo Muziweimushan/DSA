@@ -36,3 +36,6 @@
 .root
 .vscode
 a.out.dSYM
+
+#vim的swap文件
+*.swp
