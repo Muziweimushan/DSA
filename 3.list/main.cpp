@@ -156,12 +156,56 @@ static void test_vector_sort()
 	}
 }
 
+#include <omp.h>
+
+bool loop_once(int elem_count)
+{
+	bool ret = true;
+	MyLib::Vector<int> v;
+
+	for (int i = 0; i < elem_count; i++)
+	{
+		MyLib::Rank pos = rand() % (v.size() + 1);
+		v.insert(pos, rand() % 9999999);
+
+	}
+	
+	v.sort();
+
+	if (0 != v.disordered())
+	{
+		cout << "sort failed..." << endl;
+		ret = false;
+	}
+	if (elem_count != v.size())
+	{
+		cout << "size is not correct, size = " << v.size() << endl;
+		ret = false;
+	}
+
+	return ret;
+}
+
+void test_sort_parallel()
+{
+	srand(time(NULL));
+	omp_set_num_threads(8);
+	#pragma omp parallel
+	for (int i = 0; i < 99999999; i++)
+	{
+		if (!loop_once(rand() % 99999))
+			break;
+
+	}
+
+}
+
 int main(void)
 {
 	//test_selectMax();
 	//test_sort();
-	test_vector_sort();
-
+	//test_vector_sort();
+	test_sort_parallel();
 #if 0
 	MyLib::List<int> l;
 
