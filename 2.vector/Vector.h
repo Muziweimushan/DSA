@@ -22,7 +22,7 @@ public:
 	/*内部空间容量设定为c,并将里边的[0,s)的元素初始化为v*/
 	Vector(int c = DEFAULT_VECTOR_CAPACITY, int s = 0, const T &v = 0)
 	{
-		cout << "Vector(const T&v, int c, int s), c = " << c << " s = " << s << endl;
+		//cout << "Vector(const T&v, int c, int s), c = " << c << " s = " << s << endl;
 
 		m_capacity = c;
 		m_elem = new T[m_capacity];
@@ -103,7 +103,7 @@ public:
 
 	const T & operator [] (Rank pos) const
 	{
-		cout << "const operator [] ..." << endl;
+		//cout << "const operator [] ..." << endl;
 		if ((pos < 0) || (pos >= m_size))
 		{
 			THROW_EXCEPTION(IndexOutOfBoundException, "Accessing vector element with invalid index ...");
@@ -214,7 +214,7 @@ public:
 			{
 				;
 			}
-			cout << "hi = " << hi << " lo = " << lo << endl;
+			//cout << "hi = " << hi << " lo = " << lo << endl;
 			ret = (hi < lo) ? -1 : hi;
 		}
 		else
@@ -371,7 +371,23 @@ public:
     void sort(void)
     {
 		if (m_size > 0)
-	   		mergeSort(m_elem, 0, m_size);	/*bubbleSort_V2*/
+			switch (rand() % 4)
+			{
+			
+				case 0:
+					seletionSort(0, m_size);
+					break;
+				case 1:
+					bubbleSort_V2(m_elem, 0, m_size);
+					break;
+				case 2:
+					insertionSort(m_elem, 0, m_size);
+					break;
+				default:
+					mergeSort(m_elem, 0, m_size);	/*bubbleSort_V2*/
+					break;
+			}
+			//insertionSort(m_elem, 0, m_size);
     }
 
     ~Vector() { delete [] m_elem; }
@@ -413,7 +429,7 @@ protected:
 		if (m_size < m_capacity)	/*还不需要扩容*/
 			return;
 		
-		cout << "we need to expand our vector capacity ..." << endl;
+		//cout << "we need to expand our vector capacity ..." << endl;
 		if (m_capacity < DEFAULT_VECTOR_CAPACITY)
 			m_capacity = DEFAULT_VECTOR_CAPACITY; /*从default容量开始*/
 
@@ -444,7 +460,7 @@ protected:
 		 */
 		if (m_size << 2 > m_capacity) return;	/*这时候装填因子是满足要求的(大于25%),先不进行缩容*/
 		
-		cout << "begin shrinking ..." << endl;
+		//cout << "begin shrinking ..." << endl;
 
 		T *old_elem = m_elem;
 
@@ -636,6 +652,75 @@ protected:
 		mergeSort(v, helper, lo, hi);
 
 		delete [] helper;	
+	}
+
+	void insertionSort(T *v, Rank lo, Rank hi)
+	{
+		/*平凡情况,元素个数小于2必然有序*/
+		if (hi - lo < 2)
+			return;	
+		
+		for (int i = 1; i < hi - lo; i++)
+		{
+			Rank pos = search(v[i], 0, i);	/*在前面一段向量中找,定位到最后一个不大于当前元素的秩,然后插入到这个元素的后面即可*/
+			//cout << "pos = " << pos << endl;
+			//cout << "v[pos] = " << v[pos] << endl;
+			pos++;	/*++才是最终要插入的位置*/
+			if (pos != i)
+			{
+				T tmp = v[i];
+				for (int j = i; j > pos; j--)	/*一贯的套路,从后向前拷不会覆盖元素*/
+				{
+					v[j] = v[j - 1];
+					//cout << "v[" << j << "] = v[" << j - 1 << "] ..." << endl;
+				}
+				v[pos] = tmp;
+			}
+		}
+	}
+
+	Rank max(Rank lo, Rank hi)
+	{
+		/*
+		 * max函数是被选择排序接口调用,内部调用不再检查参数
+		 * 要注意这里的语义是要在[lo, hi]左右都是闭区间的范围上找最大的元素,如果有多个重复的则返回秩最大的
+		 */
+		Rank ret = hi;	/*返回值初始化为查找区间最后的元素*/
+
+		/*查找最大值的流程这样实现即可:
+		 * 先初始化最大值为hi,然后在[lo, hi)注意这里是前闭后开的范围的区间上找,而且是从后向前,
+		 * 如果发现存在元素值比指示器对应的元素大(一定是大于,否则当有多个最大元素时不能保证返回秩最大的),则更新指示器即可
+		 */
+		for (int i = hi - 1; i >= lo; i--)
+		{
+			if (m_elem[i] > m_elem[ret])
+				ret = i;	
+		}
+
+		return ret;
+	}
+
+	void seletionSort(Rank lo, Rank hi)
+	{
+		/*
+		 * 选择排序思想,将排序空间划分为两段,第一段是无序的,第二段是有序的,
+		 * 借助迭代,每次从第一段中找到最大的插入到第二段中,迭代完成,自然就是有序的
+		 */
+
+		/*0 <= lo < hi <= size*/
+		if (lo >= 0 && lo < hi && hi <= m_size)
+		{
+			while (lo < hi--)
+			{
+				Rank mx = max(lo, hi);	/*从[lo, hi]前闭后闭区间上找,因为循环判断中已经在hi减一了*/
+				if (hi != mx)
+					Swap(m_elem[mx], m_elem[hi]);	/*这里有点巧妙,本来是插入操作的,每次迭代插入位置就是hi这个位置,由于向量的存储空间是连续的内存,因此采用了swap的方式代替交换*/
+			}	
+		}
+		else
+		{
+			THROW_EXCEPTION(IndexOutOfBoundException, "seletion-sort with invalid index ...");
+		}
 	}
 
 private:

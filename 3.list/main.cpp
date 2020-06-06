@@ -120,27 +120,40 @@ static void test_rank(void)
 #include "Vector.h"
 static void test_vector_sort()
 {
-	MyLib::Vector<int> v;
 	
 	srand(time(NULL));
 
-	for (int i = 0; i < 10; i++)
-		v.insert(0, rand() % 1000);
+	int loop_count = rand() % 9999;
 
-	for (int i = 0; i < v.size(); i++)
+	while (--loop_count > 0)
 	{
-		cout << "v[" << i << "] = " << v[i] << endl;
+		if (!(loop_count % 100))
+			cout << "loop_count = " << loop_count << endl;
+
+		MyLib::Vector<int> v;
+		int elem_count = rand() % 9999;
+		for (int i = 0; i < elem_count; i++)
+		{
+			Rank pos = rand() % (v.size() + 1);
+			v.insert(pos, rand() % 1000);
+		}
+
+		//cout << "elem_count = " << elem_count << endl;
+		//cout << "ori size = " << v.size() << endl;
+
+		v.sort();
+
+		if (0 != v.disordered())
+		{
+			cout << "sort failed..." << endl;
+			break;
+		}
+		if (elem_count != v.size())
+		{
+			cout << "size is not correct, size = "  << v.size() << endl;
+			break;
+		}
 	}
-
-	v.sort();
-
-	cout << "after sort :" << endl;
-
-	for (int i = 0; i < v.size(); i++)
-	{
-		cout << "v[" << i << "] = " << v[i] << endl;
-	}
-
 }
 
 int main(void)
