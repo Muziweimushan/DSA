@@ -62,6 +62,7 @@ public:
     int deduplicate();  /*无序列表的去重操作*/
     int uniquify(); /*有序列表的去重操作*/
     void reverse(); /*列表的前后倒序*/
+    void reverse_V3();
 
     void traverse(void (*visit)(T &e));  /*遍历操作*/
     template < typename VST >

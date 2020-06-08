@@ -189,7 +189,7 @@ bool loop_once(int elem_count)
 void test_sort_parallel()
 {
 	srand(time(NULL));
-	omp_set_num_threads(8);
+	omp_set_num_threads(2);
 	#pragma omp parallel
 	for (int i = 0; i < 99999999; i++)
 	{
@@ -200,12 +200,29 @@ void test_sort_parallel()
 
 }
 
+void test_reverse()
+{
+	MyLib::List<int> l;
+
+	for (int i = 0; i < 10; i++)
+	{
+		l.insertAsLast(i);
+	}
+	
+	l.traverse(Test_traverse());
+	l.reverse_V3();
+
+	l.traverse(Test_traverse());
+
+}
+
 int main(void)
 {
+	test_reverse();
 	//test_selectMax();
 	//test_sort();
 	//test_vector_sort();
-	test_sort_parallel();
+	//test_sort_parallel();
 #if 0
 	MyLib::List<int> l;
 

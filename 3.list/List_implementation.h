@@ -284,7 +284,7 @@ int List<T>::deduplicate()
 	Rank r = 0;
 
 	/*
-	 * 以下迭代,每一次循环,都有正确性描述如下:
+	 * 以下迭代,每一次循环,都有不变性描述如下:
 	 * 	当前节点p的所有前驱均互不相同
 	 * 同时每一次迭代,问题规模减一,满足单调性,因此算法得证
 	 */
@@ -790,11 +790,6 @@ void List<T>::mergeSort(Posi(T) &p, int n)
 	merge(p, middle, *this, q, n - middle);
 }
 
-template < typename T >
-List<T>::~List()
-{
-	clear();
-}
 
 template < typename T >
 Posi(T) List<T>::removeFromList(Posi(T) p)
@@ -834,6 +829,57 @@ Posi(T) List<T>::insertAfter(Posi(T) p, Posi(T) n)
 	m_size++;
 
 	return n;
+}
+
+template < typename T >
+void Swap(T &a, T &b)
+{
+	T tmp = a;
+	a = b;
+	b = tmp;
+}
+
+template < typename T >
+void List<T>::reverse()
+{
+	/*列表元素翻转版本二,实现思路是将所有节点(包括header和trailer)的pred和succ指针对调*/
+	/*经过上面的步骤后实际上列表就整个的翻转了,于是乎header和trailer也被翻转了,所以在最后就要将header和trailer对调回来*/
+	Posi(T) p = m_header;
+
+	while (NULL != p)
+	{
+		Swap(p->m_pred, p->m_succ);
+		p = p->m_pred;	/*原来访问下一个是succ,对调以后就是pred*/
+	}
+
+	Swap(m_header, m_trailer);
+}
+
+/*书里边最后列表翻转使用的是这里的实现,但是这样在泛指类型T较为复杂时两个节点元素值的交换可能会非常耗时,这个实现与向量的翻转实现方法一致*/
+template < typename T >
+void List<T>::reverse_V3()
+{
+	Posi(T) p = m_header->m_succ;
+	Posi(T) q = m_trailer->m_pred;
+	/*列表元素翻转的版本三*/
+	/*
+	 * 实现思路如下:
+	 * 第一轮迭代将l[0]与l[size - 1]的元素值进行交换
+	 * 第二轮将l[1]与l[size - 2]节点处的元素值进行交换
+	 * ......
+	 * 直到两个节点位置的指针之间元素小于2为止,这个算法的不变性和单调性是显然的*/
+	for (int i = 1; i < m_size; i += 2)	/*这里i从1开始挺牛逼的,就能筛选出size <= 1的平凡情况了,而且迭代次数也是正确的*/
+	{
+		Swap(p->m_data, q->m_data);
+		p = p->m_succ;
+		q = q->m_pred;
+	}
+}
+
+template < typename T >
+List<T>::~List()
+{
+	clear();
 }
 
 #endif
