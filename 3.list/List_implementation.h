@@ -345,16 +345,15 @@ int List<T>::uniquify()
 
 	/*与有序向量的去重类似,采用双指针法*/
 	Posi(T) i = m_header->m_succ;	/*从第一个开始,i指向l[0]*/
-	Posi(T) j = NULL;	/*j应当指向l[1],这里不能做这个初始化*/
+	Posi(T) j = i->m_succ;	/*j应当指向l[1]*/
 
-	for (; m_trailer != i; )
+	/*显然算法的时间复杂度取决于这个循环,j从1到size,是线性阶的时间复杂度O(n)*/
+	for (; m_trailer != j; )
 	{
-		/*每一次迭代,j总是i的后面一个*/
-		j = i->m_succ;
 		/*
 		 * 比较下标j是否与i相等
 		 * 如果相等,这时候应当先删掉j,然后让j重新指向i的后面一个,而不能简单自增1,因为列表物理上是不连续的
-		 * 如果不相等,i和j同时后一个,j的后移放在循环体开始的地方,因此这里仅需要后移i
+		 * 如果不相等,则将i移动到j的位置上
 		 */
 		if (i->m_data == j->m_data)
 		{
@@ -364,6 +363,8 @@ int List<T>::uniquify()
 		{
 			i = j;
 		}
+		/*每一次迭代,j总是i的后面一个*/
+		j = i->m_succ;
 	}
 	
 	return old_size - m_size;
