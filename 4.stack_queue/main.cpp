@@ -7,7 +7,7 @@ using namespace std;
 void hex_convertion(MyLib::Stack<char> &s, int64_t n, int base)
 {
 	const char digit[] = {'0', '1', '2', '3', '4', '5', '6', '7',
-						'8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};	/*这里最多支持16进制转换*/
+			'8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};	/*这里最多支持16进制转换*/
 
 	while (n > 0)
 	{
