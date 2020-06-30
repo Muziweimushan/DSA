@@ -17,6 +17,25 @@ void hex_convertion(MyLib::Stack<char> &s, int64_t n, int base)
 	}
 }
 
+bool stack_permutation_judge(MyLib::Stack<int> A, MyLib::Stack<int> &B)
+{
+	MyLib::Stack<int> S;	/*辅助栈*/
+	
+	while (!B.empty())
+	{
+		while (S.empty() || B.top() != S.top())
+		{
+			if (!A.empty())
+				S.push(A.pop());
+			else
+				/*此时A已经是空栈,说明不能借助S将A元素转移至B*/
+		}
+	}
+
+
+	return true;
+}
+
 
 int main(void)
 {
