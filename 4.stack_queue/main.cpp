@@ -78,13 +78,104 @@ void test_judge()
 	cout << stack_permutation_judge(A, B) << endl;
 }
 
+/*括号匹配*/
+bool parenthesis(const char *s)
+{
+	bool ret = true;
+	MyLib::Stack<char> S;
+	/*括号匹配的思路就是线性扫描输入，如果遇到左括号就压入栈中,如果遇到右括号则与栈顶元素进行比较,一旦不一致,则说明括号不匹配,如果一致,则将这对匹配的括号从计算过程删去,继续向后扫描,当整个输入扫描完成后,如果辅助栈大小为0,则说明匹配,否则也是不匹配的*/
+	
+	int len = strlen(s);
+
+	for (int i = 0; i < len && ret; i++)
+	{
+		switch (s[i])
+		{
+			case '(' :
+			case '[' :
+			case '{' :
+			{
+				/*左括号入栈即可*/
+				S.push(s[i]);
+				break;
+			}
+			case ')' :
+			{
+				if (S.empty() || (S.top() != '('))
+				{
+					/*不匹配！*/
+					ret = false;
+				}
+				else
+				{
+					/*找到一对括号,将它们pop出来即可*/
+					S.pop();
+				}
+				break;
+			}
+
+			case ']' :
+			{
+				if (S.empty() || (S.top() != '['))
+				{
+					/*不匹配！*/
+					ret = false;
+				}
+				else
+				{
+					/*找到一对括号,将它们pop出来即可*/
+					S.pop();
+				}
+				break;
+			}
+			case '}' :
+			{
+			
+				if (S.empty() || (S.top() != '{'))
+				{
+					/*不匹配！*/
+					ret = false;
+				}
+				else
+				{
+					/*找到一对括号,将它们pop出来即可*/
+					S.pop();
+				}
+				break;
+			}
+			default:
+			{
+				/*其他不关心的字符不管*/
+				break;
+			}
+		
+		}
+	}
+
+	if (ret)
+	{
+		/*到此处如果ret为真,说明整个输入扫描完了,再来检查辅助栈是否为空*/
+		ret = S.empty();
+	}
+	
+	return ret;
+}
+
 
 int main(void)
 {
+	char str[] = "(sahf[fa]{dsga}";
+
+	cout << parenthesis(str) << endl;
+
+
+#if 0	/*测试栈混洗*/	
 	test_judge();
 
 	return 0;
+#endif
 
+#if 0	/*测试进制转换*/
 	MyLib::Stack<char> s;
 
 	hex_convertion(s, 72727271212321515, 16);
@@ -94,4 +185,5 @@ int main(void)
 
 	cout << endl;
 	return 0;
+#endif
 }
