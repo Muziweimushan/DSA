@@ -1,4 +1,6 @@
 #include <iostream>
+#include <cstdlib>
+
 #include "Stack.h"
 
 using namespace std;
@@ -161,33 +163,50 @@ bool parenthesis(const char *s)
 	return ret;
 }
 
-static void readNumber(char *&s, MyLib::Stack<double> &stack)
+static bool readNumber(char *&s, MyLib::Stack<double> &stack)
 {
 	char *end = NULL;
 	char *start = s;
 
-	double number = strtod(start, end);
+	double number = strtod(start, &end);
 	if (start == end)
 	{
 		printf("read number failed ...\n");
-		return;
+		return false;
 	}
+
+	stack.push(number);
+	s += (end - start);
+	return true;
+
 }
+
+static const 
 
 double evaluate(char *s)
 {
 	MyLib::Stack<double> stack_operand;	/*操作数栈*/
 	MyLib::Stack<char> stack_operator;	/*操作符栈*/
-
+	bool loop = true;
 	/*输入字符串的结尾是\0,先向操作符栈中压入一个\0用于匹配结尾*/
 	stack_operator.push('\0');
 
-	while (!stack_operand.empty())
+	while (!stack_operand.empty() && loop)
 	{
 		/*线性扫描每一个输入字符,如果当前字符是数字,也就是操作数,将其存入操作数栈*/	
 		if (isdigit(*s))
 		{
-			readNumber(s, stack_operand);	
+			if (!readNumber(s, stack_operand))
+			{
+				/*读入操作数失败*/
+				loop = false;
+				break;
+			}
+		}
+		else
+		{
+			/*否则就说明是操作符,将当前操作符与栈顶元素进行优先级比较*/
+
 		}
 	}
 
