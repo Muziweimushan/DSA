@@ -177,6 +177,8 @@ static bool readNumber(char *&s, MyLib::Stack<double> &stack)
 		return false;
 	}
 
+	cout << "get double = " << number << endl;
+
 	stack.push(number);
 	s += (end - start);
 	return true;
@@ -363,7 +365,7 @@ double evaluate(char *s)
 	/*输入字符串的结尾是\0,先向操作符栈中压入一个\0用于匹配结尾*/
 	stack_operator.push('\0');
 
-	while (!stack_operand.empty() && loop)
+	while (!stack_operator.empty() && loop)
 	{
 		/*线性扫描每一个输入字符,如果当前字符是数字,也就是操作数,将其存入操作数栈*/	
 		if (isdigit(*s))
@@ -441,6 +443,9 @@ double evaluate(char *s)
 		}
 	}
 
+	cout << "loop = " << loop << endl;
+	cout << "size = " << stack_operand.size() << endl;
+
 	if (loop && 1 == stack_operand.size())
 	{
 		/*计算成功*/
@@ -452,16 +457,31 @@ double evaluate(char *s)
 		THROW_EXCEPTION(MyLib::InvalidParameterException, "input expression is invalid ...");
 	}
 
-	return stack_operand.pop();
+	return ret;
 }
 
 
 int main(void)
 {
+	char expression[] = "2+3!";
+	try
+	{
+		cout << evaluate(expression) << endl;
+	}
+	catch (const MyLib::Exception &obj)
+	{
+		cout << obj.location() << obj.message() << endl;
+	}
+	catch(...)
+	{
+	
+	}
+#if 0
+	
 	char str[] = "(sahf[fa]{dsga}";
 
 	cout << parenthesis(str) << endl;
-
+#endif
 
 #if 0	/*测试栈混洗*/	
 	test_judge();
