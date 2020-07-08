@@ -1,7 +1,9 @@
 #include <iostream>
 #include <cstdlib>
+#include <math.h>
 
 #include "Stack.h"
+#include "Exception.h"
 
 using namespace std;
 
@@ -206,29 +208,25 @@ typedef enum
 
 static const char c_priority_table[OPERATOR_TYPE_CNT][OPERATOR_TYPE_CNT] = 
 {
-	/*				当前元素						*/
-	/*'+'  '-'	'*'	 '/'  '!'  '^'	'('	 ')'  '\0'	*/
-/* +'*/		{ '>', '>', '<', '<', '<', '<', '<', '>', '>' },
+/*				当前元素						*/
+/*		  '+'  '-' '*'	 '/'  '!'  '^'	'('  ')'  '\0'	*/
+/* --  '+' */	{ '>', '>', '<', '<', '<', '<', '<', '>', '>' },
 
-		{ '>', '>', '<', '<', '<', '<', '<', '>', '>' },
+/* |   '-' */	{ '>', '>', '<', '<', '<', '<', '<', '>', '>' },
 
-		{ '>', '>', '>', '>', '<', '<', '<', '>', '>' },
+/* 栈  '*' */	{ '>', '>', '>', '>', '<', '<', '<', '>', '>' },
 	
-		{ '>', '>', '>', '>', '<', '<', '<', '>', '>' },
+/* 顶  '/' */	{ '>', '>', '>', '>', '<', '<', '<', '>', '>' },
 
-		{ '>', '>', '>', '>', '>', '>', ' ', '>', '>' },
+/* 运  '!' */	{ '>', '>', '>', '>', '>', '>', ' ', '>', '>' },
 
-		{ '>', '>', '>', '>', '>', '<', '<', '>', '>' },
+/* 算  '^' */	{ '>', '>', '>', '>', '<', '>', '<', '>', '>' },
 
-		{ '>', '>', '<', '<', '<', '<', '<', '>', '>' },
-	{
-		OPERATOR_PRIORITY_GREATER_THAN, OPERATOR_PRIORITY_GREATER_THAN, OPERATOR_PRIORITY_LESS_THAN, OPERATOR_PRIORITY_LESS_THAN,
-		OPERATOR_PRIORITY_LESS_THAN, OPERATOR_PRIORITY_LESS_THAN, OPERATOR_PRIORITY_LESS_THAN, OPERATOR_PRIORITY_GREATER_THAN, OPERATOR_PRIORITY_GREATER_THAN
-	},
-	{
-		OPERATOR_PRIORITY_GREATER_THAN, OPERATOR_PRIORITY_GREATER_THAN, OPERATOR_PRIORITY_LESS_THAN, OPERATOR_PRIORITY_LESS_THAN,
-		OPERATOR_PRIORITY_LESS_THAN, OPERATOR_PRIORITY_LESS_THAN, OPERATOR_PRIORITY_LESS_THAN, OPERATOR_PRIORITY_GREATER_THAN, OPERATOR_PRIORITY_GREATER_THAN
-	},
+/* 符  '(' */	{ '<', '<', '<', '<', '<', '<', '<', '=', ' ' },
+
+/* |   ')' */	{ ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' },
+
+/* --  '\0' */	{ '<', '<', '<', '<', '<', '<', '<', ' ', '=' }
 };
 
 static int operator_to_rand(const char &c)
@@ -256,7 +254,101 @@ static OPERATOR_PRIORITY getPriBtw(const char &top_optr, const char &cur_optr)
 
 	if ((index1 < OPERATOR_TYPE_CNT) && (index2 < OPERATOR_TYPE_CNT))
 	{
-		ret = c_priority_table[index1][index2];
+		char c = c_priority_table[index1][index2];
+		switch (c)
+		{
+			case '>' : { ret = OPERATOR_PRIORITY_GREATER_THAN; break; }
+			case '<' : { ret = OPERATOR_PRIORITY_LESS_THAN; break; }
+			case '=' : { ret = OPERATOR_PRIORITY_EQUAL; break; }
+			case ' ' : { ret = OPERATOR_PRIORITY_INVALID ; break; }
+		}
+	}
+
+	return ret;
+}
+
+/*计算n的阶乘*/
+static int64_t factorial(int n)
+{
+	int64_t ret = 1;
+
+	while (n > 1)
+	{
+		ret *= n;
+		n--;
+	}
+
+	return ret;
+}
+
+double calculate(char optr, double opand)
+{
+	double ret = 0;
+	switch (optr)
+	{
+		case '!':
+		{
+			ret = factorial(static_cast<int>(opand));
+			break;
+		}
+		default:
+		{
+			/*目前仅支持阶乘运算是单目的*/
+			THROW_EXCEPTION(MyLib::ArithmeticException, "Not supported calculation ...");
+			break;
+		}
+	}
+
+	return ret;
+}
+
+double calculate(char optr, double opand1, double opand2)
+{
+	double ret = 0.0;
+
+	switch (optr)
+	{
+		case '+' :
+		{
+			ret = opand1 + opand2;
+			break;
+		}
+		case '-' :
+		{
+			ret = opand1 - opand2;
+			break;
+		}
+		case '*' :
+		{
+			ret = opand1 * opand2;
+			break;
+		}
+		case '/' :
+		{
+			/*检查除数是否为0*/
+			double delta = opand2 - 0.0;
+			const double epsilon = 0.00000000000001;
+			if ((delta > -epsilon) && (delta < epsilon))
+			{
+				THROW_EXCEPTION(MyLib::ArithmeticException, "divisor could not be 0!");
+			}
+			else
+			{
+				ret = opand1 / opand2;
+			}
+			break;
+		}
+		case '^' :
+		{
+			ret = pow(opand1, opand2);
+			break;
+		}
+		default:
+		{
+			THROW_EXCEPTION(MyLib::ArithmeticException, "Not supported calculation ...");
+			break;
+		}
+	
 	}
 
 	return ret;
@@ -267,6 +359,7 @@ double evaluate(char *s)
 	MyLib::Stack<double> stack_operand;	/*操作数栈*/
 	MyLib::Stack<char> stack_operator;	/*操作符栈*/
 	bool loop = true;
+	double ret = 0.0;
 	/*输入字符串的结尾是\0,先向操作符栈中压入一个\0用于匹配结尾*/
 	stack_operator.push('\0');
 
@@ -285,11 +378,79 @@ double evaluate(char *s)
 		else
 		{
 			/*否则就说明是操作符,将当前操作符与栈顶元素进行优先级比较*/
-
+			OPERATOR_PRIORITY priority = getPriBtw(stack_operator.top(), *s);
+			switch (priority)
+			{
+				case OPERATOR_PRIORITY_GREATER_THAN :
+				{
+					/*操作符栈顶元素优先级更高,意味着可以执行当前栈顶操作符对应的运算了*/
+					/*除了阶乘外其他都需要两个操作数*/
+					char optr = stack_operator.pop();	/*获取当前要执行哪种计算*/
+					if ('!' == optr)
+					{
+						if (stack_operand.size() >= 1)
+						{
+							double opand = stack_operand.pop();
+							stack_operand.push(calculate(optr, opand));
+						}
+						else
+						{
+							/*表达式有问题,操作数栈为空*/	
+							loop = false;
+						}
+					
+					}
+					else
+					{
+						/*例如要计算2+3,操作数栈顶元素是3,后面的才是2*/
+						if (stack_operand.size() >= 2)
+						{
+							double opand2 = stack_operand.pop();
+							double opand1 = stack_operand.pop();
+							stack_operand.push(calculate(optr, opand1, opand2));
+						}
+						else
+						{
+							/*表达式有问题*/
+							loop = false;
+						}
+					}
+					break;
+				}
+				case OPERATOR_PRIORITY_LESS_THAN :
+				{
+					/*栈顶符号优先级低于当前符号,将这个符号入栈*/
+					stack_operator.push(*s);
+					s++;
+					break;
+				}
+				case OPERATOR_PRIORITY_EQUAL:
+				{
+					/*相等情况对应于左右括号或者是首尾结束符匹配情况,这时候两个符号之间的运算都已经全部计算完成了,因此此处仅需要将栈顶符号pop出即可*/
+					stack_operator.pop();
+					s++;	/*当前符号也已经被处理过了,s需要指向下一个字符*/
+					break;
+				}
+				default:
+				{
+					/*其他情况都属于表达式不正确*/
+					loop = false;
+					break;
+				}
+			}
 		}
 	}
 
-		
+	if (loop && 1 == stack_operand.size())
+	{
+		/*计算成功*/
+		/*检查操作数栈长度是否为1*/
+		ret = stack_operand.pop();
+	}
+	else
+	{
+		THROW_EXCEPTION(MyLib::InvalidParameterException, "input expression is invalid ...");
+	}
 
 	return stack_operand.pop();
 }
