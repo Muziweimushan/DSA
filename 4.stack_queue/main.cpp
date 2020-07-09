@@ -463,7 +463,7 @@ double evaluate(char *s)
 
 int main(void)
 {
-	char expression[] = "2+3!";
+	char expression[] = "0!+12+34*56+7+89";
 	try
 	{
 		cout << evaluate(expression) << endl;
