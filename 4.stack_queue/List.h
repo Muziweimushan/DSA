@@ -54,7 +54,7 @@ public:
     Posi(T) insertBefore(Posi(T) p, const T &e);    /*插入到p的前驱位置*/
     Posi(T) insertAfter(Posi(T) p, const T &e); /*插入到p的后继位置*/
     T remove(Posi(T) p);    /*删除合法位置p的节点,并返回被删除的元素*/
-	T remove(Rank r);
+    T remove(Rank r);
     void merge(List<T> &list); /*全列表做归并*/
     void sort(Posi(T) p, int n);    /*列表区间排序*/
     void sort();    /*列表整体排序*/

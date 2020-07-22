@@ -356,7 +356,7 @@ double calculate(char optr, double opand1, double opand2)
 	return ret;
 }
 
-double evaluate(char *s)
+double evaluate(char *s, char *RPN)
 {
 	MyLib::Stack<double> stack_operand;	/*操作数栈*/
 	MyLib::Stack<char> stack_operator;	/*操作符栈*/
@@ -376,6 +376,8 @@ double evaluate(char *s)
 				loop = false;
 				break;
 			}
+			/*操作数同样串接到RPN后面即可*/
+
 		}
 		else
 		{
