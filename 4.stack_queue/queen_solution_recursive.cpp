@@ -9,13 +9,13 @@ static int g_solve_count = 0;
 
 static void print_solution(const MyLib::Vector<int> solution)
 {
-	printf("--\n");
+	printf("find solution[%d] : \n", g_solve_count);
 
-	for (int i = 0; i < solution.size(); i++)
+	for (int i = solution.size(); i > 0; i--)
 	{
 		for (int j = 0; j < solution.size(); j++)
 		{
-			if (solution[i] == j)
+			if (solution[i - 1] == j)
 				printf("[*]");
 			else
 				printf("[ ]");
