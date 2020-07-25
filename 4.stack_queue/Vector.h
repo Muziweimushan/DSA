@@ -229,6 +229,14 @@ public:
 
 		return ret;
 	}
+
+	Rank find(const T &e)
+	{
+		if (m_size <= 0)
+			return -1;
+		else
+			return find(0, m_size, e);
+	}
 	
 	/*删除向量区间[lo, hi)的元素*/
 	/*返回值指明删除了多少个元素*/

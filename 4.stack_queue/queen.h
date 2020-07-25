@@ -6,6 +6,9 @@
 class Queen
 {
 public:
+	int m_x;	/*行*/
+	int m_y;	/*列*/
+
 	Queen(int x = 0, int y = 0)
 	{
 		m_x = x;
@@ -26,11 +29,6 @@ public:
 	}
 
 	~Queen() {}
-
-private:
-	int m_x;	/*行*/
-	int m_y;	/*列*/
-
 };
 
 

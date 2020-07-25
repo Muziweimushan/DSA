@@ -466,11 +466,12 @@ double evaluate(char *s, char *RPN)
 
 
 extern void queen_solution_V1(int n);
+extern void queen_solution_V2(int N);
 
 int main(void)
 {
 
-	queen_solution_V1(8);
+	queen_solution_V2(8);
 #if 0	/*测试中缀表达式计算*/
 	char expression[] = "0!+12+34*56+7+89";
 	try
