@@ -103,5 +103,5 @@ void queen_solution_V2(int N)
 		return;
 	}
 
-	cout << "queen solution : find count = " << g_solve_count << endl;
+	cout << "queen solution v2 : find count = " << g_solve_count << endl;
 }

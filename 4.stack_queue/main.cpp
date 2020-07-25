@@ -470,14 +470,14 @@ extern void queen_solution_V2(int N);
 
 static void *thread_proc_v1(void *arg)
 {
-    queen_solution_V1(20);
+    queen_solution_V1(15);
 
     return NULL;
 }
 
 static void *thread_proc_v2(void *arg)
 {
-    queen_solution_V2(20);
+    queen_solution_V2(15);
 
     return NULL;
 }
