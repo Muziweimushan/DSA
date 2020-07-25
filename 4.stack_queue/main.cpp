@@ -468,10 +468,34 @@ double evaluate(char *s, char *RPN)
 extern void queen_solution_V1(int n);
 extern void queen_solution_V2(int N);
 
+static void *thread_proc_v1(void *arg)
+{
+    queen_solution_V1(20);
+
+    return NULL;
+}
+
+static void *thread_proc_v2(void *arg)
+{
+    queen_solution_V2(20);
+
+    return NULL;
+}
+
+#include <pthread.h>
+
 int main(void)
 {
+    pthread_t thread_v1;
+    pthread_t thread_v2;
 
-	queen_solution_V2(8);
+    pthread_create(&thread_v1, NULL, thread_proc_v1, NULL);
+    pthread_create(&thread_v2, NULL, thread_proc_v2, NULL);
+	//queen_solution_V2(20);
+    //queen_solution_V1(20);
+    //
+    pthread_join(thread_v1, NULL);
+    pthread_join(thread_v2, NULL);
 #if 0	/*测试中缀表达式计算*/
 	char expression[] = "0!+12+34*56+7+89";
 	try

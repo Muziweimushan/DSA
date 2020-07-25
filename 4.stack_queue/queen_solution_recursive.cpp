@@ -83,7 +83,7 @@ static void placeQueen(MyLib::Vector<int> solution, int n, int k)
 	if (n == solution.size())
 	{
 		g_solve_count++;
-		print_solution(solution);	
+		//print_solution(solution);	
 	}
 	else
 	{

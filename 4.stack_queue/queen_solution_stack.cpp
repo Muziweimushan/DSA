@@ -74,7 +74,7 @@ static void placeQueen(int N)
 				if (solution.size() == N)
 				{
 					g_solve_count++;
-					print_solution(solution, N);
+					//print_solution(solution, N);
 				}
 				/*移动到下一行,而且从列坐标0开始*/
 				q.m_x++;
