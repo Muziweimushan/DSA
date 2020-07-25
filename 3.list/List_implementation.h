@@ -508,7 +508,7 @@ void List<T>::insertionSort(Posi(T) p, int n)
 			Posi(T) pos = search(p->m_data, i, p);	/*前面一段是有序的,通过search接口查找,最坏情况(也就是完全逆序,每次都要走完i次)O(i)的复杂度*/
 			/*将当前元素从后面的区间中删掉,然后指向下一个*/
 			Posi(T) toDel = p;
-			p = p->m_succ;
+			p = p->m_succ;/*无序部分规模缩小一个单位*/
 			removeFromList(toDel);
 			/*然后将这个节点插入到pos的后面*/
 			insertAfter(pos, toDel);

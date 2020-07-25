@@ -1,6 +1,8 @@
 #include <iostream>
 #include <cstdlib>
 #include <math.h>
+#include <cstring>
+#include <cstdio>
 
 #include "Stack.h"
 #include "Exception.h"
