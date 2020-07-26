@@ -483,9 +483,22 @@ static void *thread_proc_v2(void *arg)
 }
 
 #include <pthread.h>
-
+#include "Queue.h"
 int main(void)
 {
+	MyLib::Queue<int> q;
+
+	for (int i = 0; i < 10; i++)
+	{
+		q.enqueue(i);
+	}
+
+	while (q.size() > 0)
+	{
+		cout << q.front() << endl;
+		q.dequeue();
+	}
+#if 0
     pthread_t thread_v1;
     pthread_t thread_v2;
 
@@ -496,6 +509,7 @@ int main(void)
     //
     pthread_join(thread_v1, NULL);
     pthread_join(thread_v2, NULL);
+#endif
 #if 0	/*测试中缀表达式计算*/
 	char expression[] = "0!+12+34*56+7+89";
 	try
