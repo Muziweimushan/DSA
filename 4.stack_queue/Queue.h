@@ -16,7 +16,7 @@ public:
     /*入队列操作*/
     void enqueue(const T &e)
     {
-        insertAsLast(e);    /*将元素e作为列表尾节点插入即可*/
+        this->insertAsLast(e);    /*将元素e作为列表尾节点插入即可*/
     }
 
     T dequeue()
