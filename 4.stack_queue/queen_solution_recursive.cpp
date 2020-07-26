@@ -69,7 +69,7 @@ static bool collide(const MyLib::Vector<int> solution)
 
 /*
  * 	查找在棋盘的第k行放置皇后的可行方案
- *	前面k-1行的皇后坐标存放在solution中 	
+ *	前面k-1行的皇后列坐标存放在solution中 	
  */
 static void placeQueen(MyLib::Vector<int> solution, int n, int k)
 {
