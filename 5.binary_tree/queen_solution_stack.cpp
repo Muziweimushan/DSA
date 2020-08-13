@@ -82,7 +82,9 @@ static void placeQueen(int N)
 				q.m_y = 0;
 			}
 			else
+            {
 				;	/*else分支情况在下一轮迭代中进入if分支...*/
+            }
 		}
 	}
 }

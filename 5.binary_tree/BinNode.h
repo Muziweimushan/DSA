@@ -36,11 +36,26 @@ public:
     template < typename VST >
     void traverPost(VST &visit);   /*子树后序遍历*/
 
-	~BinNode();
+	virtual ~BinNode();
 
 private:
 	/*所有成员变量/函数定义为public,后续可根据工程实际需要修改*/
 };
+
+template < typename T >
+BinNode<T>::BinNode()
+    : m_data(),
+    m_parent(NULL),
+    m_leftchild(NULL),
+    m_rightchild(NULL),
+    m_height(0)
+{}
+
+template < typename T >
+BinNode<T>::~BinNode()
+{
+}
+
 
 
 }
