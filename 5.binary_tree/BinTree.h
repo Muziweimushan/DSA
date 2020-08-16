@@ -35,6 +35,9 @@ public:
     BinNodePosi(T) attachAsLeftChild(BinNodePosi(T) x, BinTree<T> *&S);
     BinNodePosi(T) attachAsRightChild(BinNodePosi(T) x, BinTree<T> *&S);
 
+    template < typename VST >
+    void travPre(const VST &visit);
+
      ~BinTree();
 
 protected:
@@ -81,6 +84,7 @@ int BinTree<T>::updateHeight(BinNodePosi(T) x)
 {
     x->m_height = 1 + ::std::max(stature(x->m_leftchild), stature(x->m_rightchild));
 
+    /*O(1)*/
     return x->m_height;
 }
 
@@ -93,6 +97,8 @@ void BinTree<T>::updateHeightAbove(BinNodePosi(T) x)
         updateHeight(x);
         x = x->m_parent;
     }
+
+    /*时间复杂度应正比于节点x的深度, O(depth(x))*/
 }
 
 template < typename T >
@@ -176,6 +182,15 @@ BinNodePosi(T) BinTree<T>::attachAsRightChild(BinNodePosi(T) x, BinTree<T> *&sub
         THROW_EXCEPTION(InvalidOperationException, "tree node x's right subtree is not empty, could not attach subtree ...");
     }
     return x;
+}
+
+template < typename T >
+template < typename VST >
+void BinTree<T>::travPre(const VST &visit)
+{
+    /*这里需要判空,以防编译器优化,因为这里->即解引用,编译器有可能认为m_root必然不是一个空指针,也不是野指针*/
+    if (NULL != m_root)
+        m_root->traverPre(visit);
 }
 
 template < typename T >

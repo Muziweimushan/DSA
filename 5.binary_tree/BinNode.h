@@ -2,8 +2,11 @@
 #ifndef __BINNODE_H__
 #define __BINNODE_H_
 
+#include <cstdlib>
+
 #include "Object.h"
 #include "Exception.h"
+#include "Stack.h"
 
 namespace MyLib
 {
@@ -33,20 +36,27 @@ public:
     BinNodePosi(T) succ(void);  /*在中序遍历意义下,当前节点的直接后继*/
 
     template < typename VST >
-    void traverLevel(VST &visit);   /*子树层次遍历*/
+    void traverLevel(const VST &visit);   /*子树层次遍历*/
     
     template < typename VST >
-    void traverPre(VST &visit);   /*子树先序遍历*/
-    template < typename VST >
-    void traverIn(VST &visit);   /*子树中序遍历*/
+    void traverPre(const VST &visit);   /*子树先序遍历*/
 
     template < typename VST >
-    void traverPost(VST &visit);   /*子树后序遍历*/
+    void traverIn(const VST &visit);   /*子树中序遍历*/
+
+    template < typename VST >
+    void traverPost(const VST &visit);   /*子树后序遍历*/
 
 	virtual ~BinNode();
 
 private:
 	/*所有成员变量/函数定义为public,后续可根据工程实际需要修改*/
+    template < typename VST >
+    void travPre_recursive(BinNodePosi(T) x, const VST &visit);
+
+    /*先序遍历迭代实现,版本1*/
+    template < typename VST >
+    void travPre_iter_V1(BinNodePosi(T) x, const VST &visit);
 };
 
 template < typename T >
@@ -87,6 +97,7 @@ BinNodePosi(T) BinNode<T>::insertAsLeftChild(const T &e)
         THROW_EXCEPTION(InvalidOperationException, "Already have left child ...");
     }
 
+    /*在常数时间内完成, O(1)*/
     return ret;
 }
 
@@ -109,6 +120,8 @@ BinNodePosi(T) BinNode<T>::insertAsRightChild(const T &e)
         THROW_EXCEPTION(InvalidOperationException, "Already have right child ...");
     }
 
+    /*在常数时间内完成, O(1)*/
+
     return ret;
 }
 
@@ -123,8 +136,57 @@ int BinNode<T>::size(void) const
     if (NULL != this->m_rightchild)
         ret += this->m_rightchild->size();
 
+    /*时间复杂度与以当前节点为根的子树规模成正比,即O(size)*/
+
     return ret;
 }
+
+template < typename T >
+template < typename VST >
+void BinNode<T>::traverPre(const VST &visit)
+{
+    switch (rand() % 2)
+    {
+        case 1: { travPre_recursive(this, visit); break; }
+        case 2: { travPre_iter_V1(this, visit); break; }
+    }
+}
+
+template < typename T >
+template < typename VST >
+void BinNode<T>::travPre_recursive(BinNodePosi(T) x, const VST &visit)
+{
+    if (NULL == x)
+        return;
+
+    visit(x->m_data);
+    travPre_recursive(x->m_leftchild, visit);
+    travPre_recursive(x->m_rightchild, visit);
+}
+
+template < typename T >
+template < typename VST >
+void BinNode<T>::travPre_iter_V1(BinNodePosi(T) x, const VST &visit)
+{
+    Stack<BinNodePosi(T)> s; /*辅助栈*/
+
+    if (NULL != x)
+        s.push(x);
+
+    while (!s.empty())
+    {
+        x = s.pop();
+        /*先序遍历在任何一个局部,都先访问根节点,然后依次访问左子树中的所有节点,再访问右子树中的所有节点,完成这些步骤才算完成局部的访问*/
+        visit(x->m_data);
+
+        if (HasRChild(*x))
+            s.push(x->m_rightchild);
+
+        if (HasLChild(*x))
+            s.push(x->m_leftchild);
+    }
+}
+
 
 template < typename T >
 BinNode<T>::~BinNode()
