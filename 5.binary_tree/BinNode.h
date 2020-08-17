@@ -162,7 +162,7 @@ void BinNode<T>::travPre_recursive(BinNodePosi(T) x, const VST &visit)
     visit(x->m_data);
     travPre_recursive(x->m_leftchild, visit);
     travPre_recursive(x->m_rightchild, visit);
-}
+}   //T(n) = O(1) + T(a) + T(n -a - 1) = O(n) 
 
 template < typename T >
 template < typename VST >
@@ -175,13 +175,15 @@ void BinNode<T>::travPre_iter_V1(BinNodePosi(T) x, const VST &visit)
 
     while (!s.empty())
     {
+        /*每次我们访问栈顶元素,并将其弹出*/
         x = s.pop();
-        /*先序遍历在任何一个局部,都先访问根节点,然后依次访问左子树中的所有节点,再访问右子树中的所有节点,完成这些步骤才算完成局部的访问*/
         visit(x->m_data);
 
+        /*右顾左盼:先看看当前节点x有无右孩子,如果有,将其入栈*/
         if (HasRChild(*x))
             s.push(x->m_rightchild);
-
+        /*接着再来看看当前节点有无左孩子,如果有,将其入栈*/
+        /*由于栈的后进先出特性,因此先访问x的右孩子,在访问x的左孩子,最终使得我们遍历的顺序符合先序遍历的要求*/
         if (HasLChild(*x))
             s.push(x->m_leftchild);
     }
