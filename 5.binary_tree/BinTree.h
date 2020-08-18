@@ -125,6 +125,7 @@ BinNodePosi(T) BinTree<T>::insertAsRightChild(BinNodePosi(T) x, const T &data)
 template < typename T >
 BinNodePosi(T) BinTree<T>::attachAsLeftChild(BinNodePosi(T) x, BinTree<T> *&subtree)
 {
+    /*左孩子是存在的就无法接入一棵子树*/
     if (!HasLChild(*x))
     {
         if (NULL != subtree)

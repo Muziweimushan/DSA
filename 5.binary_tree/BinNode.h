@@ -57,6 +57,14 @@ private:
     /*先序遍历迭代实现,版本1*/
     template < typename VST >
     void travPre_iter_V1(BinNodePosi(T) x, const VST &visit);
+
+    /*先序遍历迭代实现,版本2*/
+    /*用于先序遍历迭代版本2,实现沿x的左侧链一路下行访问,同时将每个左孩子的兄弟入栈*/
+    template < typename VST >
+    void visitAlongLeftBranch(BinNodePosi(T) x, const VST &visit, Stack<BinNodePosi(T)> &S);
+    
+    template < typename VST >
+    void travPre_iter_V2(BinNodePosi(T) x, const VST &visit);
 };
 
 template < typename T >
@@ -145,10 +153,11 @@ template < typename T >
 template < typename VST >
 void BinNode<T>::traverPre(const VST &visit)
 {
-    switch (rand() % 2)
+    switch (rand() % 3)
     {
         case 1: { travPre_recursive(this, visit); break; }
         case 2: { travPre_iter_V1(this, visit); break; }
+        case 3: { travPre_iter_V2(this, visit); break; }
     }
 }
 
@@ -189,6 +198,42 @@ void BinNode<T>::travPre_iter_V1(BinNodePosi(T) x, const VST &visit)
     }
 }
 
+template < typename T >
+template < typename VST >
+void BinNode<T>::visitAlongLeftBranch(BinNodePosi(T) x, const VST &visit, Stack<BinNodePosi(T)> &s)
+{
+    /*本函数负责实现二叉树中序遍历中沿节点x的左侧链不断下行的逻辑*/
+    /*算法复杂度分摊O(1)*/
+    while (NULL != x)
+    {
+        /*先访问x*/
+        visit(x);
+        /*x的右孩子入栈*/
+        if (NULL != x->m_rightchild)
+            s.push(x->m_rightchild);
+
+        /*将控制权交给x的左孩子*/
+        x = x->m_leftchild;
+    }
+}
+
+template < typename T >
+template < typename VST>
+void BinNode<T>::travPre_iter_V2(BinNodePosi(T) x, const VST &visit)
+{
+    bool loop = true;
+    Stack<BinNodePosi(T)> s;
+
+    while (loop)
+    {
+        visitAlongLeftBranch(x, visit, s);
+        if (s.size() <= 0)
+            loop = false;
+        else
+            x = s.pop();
+    }
+    /*pop = push = visit = O(n) = 分摊O(1)*/
+}
 
 template < typename T >
 BinNode<T>::~BinNode()
