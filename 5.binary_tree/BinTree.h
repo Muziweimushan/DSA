@@ -35,8 +35,17 @@ public:
     BinNodePosi(T) attachAsLeftChild(BinNodePosi(T) x, BinTree<T> *&S);
     BinNodePosi(T) attachAsRightChild(BinNodePosi(T) x, BinTree<T> *&S);
 
+    /*从树中删除以x为根节点的子树,返回删除的子树的规模*/
+    int remove(BinNodePosi(T) x);
+    /*子树分离,将以x为根节点的子树从当前树中摘除*/
+    BinTree<T> *secede(BinNodePosi(T) x);
+
     template < typename VST >
     void travPre(const VST &visit);
+
+    /*二叉树的中序遍历接口*/
+    template < typename VST >
+    void travIn(const VST &visit);
 
      ~BinTree();
 
@@ -47,6 +56,10 @@ protected:
 
     virtual int updateHeight(BinNodePosi(T) x); /*更新节点x的高度*/
     void updateHeightAbove(BinNodePosi(T) x);   /*更新节点x及其祖先的高度*/
+
+private:
+    /*子函数,实现递归释放以x为根节点的子树空间*/
+    int removeAt(BinNodePosi(T) x);
 };
 
 template < typename T >
@@ -194,9 +207,93 @@ void BinTree<T>::travPre(const VST &visit)
         m_root->traverPre(visit);
 }
 
+/*完成递归释放以x为根节点的子树空间*/
+template < typename T >
+int BinTree<T>::removeAt(BinNodePosi(T) x)
+{
+    int ret = 0;
+
+    if (NULL == x)
+        return 0;   /*递归基,空树直接返回,规模为0*/
+
+    ret = 1 + removeAt(x->m_leftchild) + removeAt(x->m_rightchild);
+
+    /*TODO:节点中的m_data空间存在问题*/
+    delete x;
+
+    return ret;
+}
+
+template < typename T >
+int BinTree<T>::remove(BinNodePosi(T) x)
+{
+    int ret = 0;
+
+    /*TODO:检查x是否是当前树中的一个合法节点*/
+    /*将x的父节点中指向x的引用赋值为空*/
+    if (m_root == x)
+        m_root = NULL;
+    else if (x == x->m_parent->m_leftchild)
+        x->m_parent->m_leftchild = NULL;
+    else if (x == x->m_parent->m_rightchild)
+        x->m_parent->m_rightchild = NULL;
+    else
+        THROW_EXCEPTION(InvalidParameterException, "Tring to remove a invalid subtree ...");  /*something wrong ...*/
+
+    /*更新高度*/
+    updateHeightAbove(x->m_parent);
+    
+    /*调用子函数完成递归删除操作*/
+    ret = removeAt(x);
+    m_size -= ret;  /*树规模更新*/
+
+    return ret;
+}
+
+template < typename T >
+BinTree<T> *BinTree<T>::secede(BinNodePosi(T) x)
+{
+    BinTree<T> *ret = NULL;
+
+    /*TODO:检查x的合法性*/
+    /*将x的父亲指向其的引用赋为空*/
+    if (x == m_root)
+        m_root = NULL;
+    else if (x == x->m_parent->m_leftchild)
+        x->m_parent->m_leftchild = NULL;
+    else if (x == x->m_parent->m_rightchild)
+        x->m_parent->m_rightchild = NULL;
+    else
+        THROW_EXCEPTION(InvalidParameterException, "tring to seceding subtree x ...");
+
+    ret = new BinTree<T>;
+    if (NULL != ret)
+    {
+        x->m_parent = NULL;
+        ret->m_root = x;
+        ret->m_size = x->size();
+        m_size -= ret->m_size;
+    }
+    else
+    {
+        THROW_EXCEPTION(NoEnoughMemoryException, "No enough memory for subtree ...");
+    }
+
+    return ret;
+}
+
+template < typename T >
+template < typename VST >
+void BinTree<T>::travIn(const VST &visit)
+{
+    if (NULL != m_root)
+        m_root->traverIn(visit);
+}
+
 template < typename T >
 BinTree<T>::~BinTree()
 {
+    remove(m_root);
 }
 
 
