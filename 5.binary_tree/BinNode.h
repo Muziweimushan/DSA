@@ -7,55 +7,10 @@
 #include "Object.h"
 #include "Exception.h"
 #include "Stack.h"
+#include "BinNode_macro.h"
 
 namespace MyLib
 {
-
-#define BinNodePosi(T) BinNode<T> *
-/*获取以p为根节点的子树的高度*/
-#define stature(p) ((p) ? (p)->m_height : -1)
-
-/*下面定义一些宏,提供一些对二叉树节点相关的便捷操作接口*/
-#define IsRoot(x) (NULL == (x).m_parent)
-#define IsLChild(x) (!IsRoot(x) && (&(x) == (x).m_parent->m_leftchild))
-#define IsRChild(x) (!IsRoot(x) && (&(x) == (x).m_parent->m_rightchild))
-
-/*判断节点x有无父亲节点,根节点就没有,其他都有*/
-#define HasParent(x) (!IsRoot(x))
-#define HasLChild(x) (NULL != (x).m_leftchild)
-#define HasRChild(x) (NULL != (x).m_rightchild)
-/*至少拥有一个孩子*/
-#define HasChild(x) (HasLChild(x) || HasRChild(x))
-/*同时拥有两个孩子*/
-#define HasBothChild(x) (HasLChild(x) && HasRChild(x))
-/*是否是叶节点,即孩子数是否为0*/
-#define IsLeaf(x) (!HasChild(x))
-
-/*与BinNode具有特定关系的节点以及指针*/
-
-/*获取兄弟节点,即如果是左孩子就返回对应父亲的右孩子,反之则返回左孩子*/
-/*注意这里的实现并没有判断其是否就是根节点*/
-#define sibling(p) ( \
-    IsLChild(*(p)) ? \
-        (p)->m_parent->m_rightchild : \
-        (p)->m_parent->m_leftchild \
-)
-
-/*获取节点位置p的叔叔,也就是它的父亲的兄弟*/
-#define uncle(p) (  \
-    IsLChild((p)->m_parent) ?   \
-        (p)->m_parent->m_parent->m_rightchild : \
-        (p)->m_parent->m_parent->m_leftchild    \
-)
-
-/*获取当前节点的父亲指向它的节点位置,即如果当前节点是左孩子的话,返回其父亲的m_leftchild,反之返回m_rightchild*/
-/*如果当前节点本身是根节点的话,返回m_root节点,即它本身*/
-#define FromParentTo(x) (   \
-    IsRoot(x) ? m_root : (  \
-        IsLChild(x) ? (x).m_parent->m_leftchild :   \
-            (x).m_parent->m_rightchild  \
-    )   \
-)
 
 template < typename T >
 class BinNode : public Object
@@ -125,6 +80,16 @@ private:
     /*中序遍历迭代版本3,借助标志位取消掉辅助栈的使用,使得空间复杂度从O(n)变为O(1)*/
     template <typename VST>
     void traverIn_iter_V3(BinNodePosi(T) x, const VST &visit);
+
+    /*后序遍历递归版本*/
+    template <typename VST>
+    void traverPost_recursion(BinNodePosi(T) x, const VST &visit);
+
+    /*后序遍历迭代版本*/
+    template < typename VST >
+    void traverPost_iter_V1(BinNodePosi(T) x, const VST &visit);
+    
+    void gotoLeftMostLeaf(Stack<BinNodePosi(T)> s);
 };
 
 template < typename T >
@@ -428,7 +393,10 @@ BinNodePosi(T) BinNode<T>::succ(void)
 
     if (NULL != ret->m_rightchild)
     {
-        /*如果右子树存在,则转入右子树中,自成一局部,然后继续沿着左侧链(藤曼)一直下行,直到找到一个没有左孩子的节点,这个节点就是我们下一次要访问的节点*/
+        /*
+        *   如果右子树存在,则转入右子树中,自成一局部,然后继续沿着左侧链(藤曼)一直下行,
+        *   直到找到一个没有左孩子的节点,这个节点就是我们下一次要访问的节点
+        */
         ret = ret->m_rightchild;
         while (HasLChild(*ret))
             ret = ret->m_leftchild;
@@ -443,8 +411,16 @@ BinNodePosi(T) BinNode<T>::succ(void)
         while (IsRChild(*ret))
             ret = ret->m_parent;    /*沿着右侧链上行,while循环结束时ret必然是我们所求的直接后继的右孩子*/
 
-        ret = ret->m_parent;    /*直接后继的右孩子的父亲即为所求,注意有可能直接后继是不存在的,这时候其实while循环结束后ret == m_root, m_root的父亲约定为空,意思就是遍历已经结束*/
+        /*
+        *   直接后继的右孩子的父亲即为所求,注意有可能直接后继是不存在的,
+        *   这时候其实while循环结束后ret == m_root, m_root的父亲约定为空,意思就是遍历已经结束
+        */
+        ret = ret->m_parent;
+
+        /*此分支的时间复杂度应当为当前节点在以目标后继节点为根的子树中的深度*/
     }
+
+    /*时间复杂度应当为O(height)*/
 
     return ret;
 }
@@ -471,6 +447,88 @@ BinNodePosi(T) BinNode<T>::pred(void)
     }
 
     return ret;
+}
+
+template < typename T >
+template < typename VST >
+void BinNode<T>::traverPost(const VST &visit)
+{
+    srand(time(NULL));
+
+    switch (rand() % 2)
+    {
+        case 0 : { traverPost_recursion(this, visit); break; }
+        case 1 : { traverPost_iter_V1(this, visit); break; }
+    }
+}
+
+template < typename T >
+template < typename VST >
+void BinNode<T>::traverPost_recursion(BinNodePosi(T) x, const VST &visit)
+{
+    /*递归基*/
+    if (NULL == x) return;
+
+    traverPost_recursion(x->m_leftchild, visit);
+    traverPost_recursion(x->m_rightchild);
+    visit(x->m_data);
+}
+
+template < typename T >
+void BinNode<T>::gotoLeftMostLeaf(Stack<BinNodePosi(T)> s)
+{
+    BinNodePosi(T) x = s.top();
+    /*以s栈顶元素为根节点,移动到其最高左侧可见叶节点处(Highest Leaf Visible From Left)*/
+    /*每遍历一个节点,需要将其左右孩子都入栈,因为后序遍历先访问左孩子,然后是右孩子,因此又是右顾左盼*/
+    while (NULL != x)
+    {
+        /*尽可能向左*/
+        if (HasLChild(*x))
+        {
+            /*如果有右孩子*/
+            if (HasRChild(*x))
+                s.push(x->m_rightchild);    /*将其入栈*/
+
+            s.push(x->m_leftchild); /*随即转向左孩子*/
+        }
+        else
+        {
+            s.push(x->m_rightchild);    /*只有左子树为空时才转向右孩子*/
+        }
+
+        x = s.top();    /*转向左/右孩子*/
+    }
+
+    s.pop();    /*有一个空节点入栈了,构成while循环退出条件,这里把它取走*/
+}
+
+template < typename T >
+template < typename VST >
+void BinNode<T>::traverPost_iter_V1(BinNodePosi(T) x, const VST &visit)
+{
+    Stack<BinNodePosi(T)> s;
+
+    /*整个后序遍历分为若干个片段,每一个片段,对应每一个在根节点左侧链上的节点*/
+    /*并从最深的那个节点开始,
+    *   首先访问当前节点
+    *   之后遍历其兄弟(必然是右兄弟)的子树(如果存在的话)
+    *   之后回溯到它的父亲,也就是开始下一片段,直到parent引用为空
+    */
+    if (NULL != x)
+        s.push(x);  /*根节点入栈*/
+
+    while (!s.empty())
+    {
+        if (s.top() != x->m_parent)
+        {
+            /*此时栈顶元素必然就是x的右兄弟,这时候s的栈顶元素应当对应一棵右子树,也就是另一个局部,调用gotoLeftMostLeaf找到其左侧链上最深的叶节点*/
+            gotoLeftMostLeaf(s);
+        }
+        /*否则就到了栈顶元素出栈并访问它的时候了,也就是回溯,并开始下一片段*/
+        /*访问节点*/
+        x = s.pop();
+        visit(x->m_data);
+    }
 }
 
 template < typename T >
