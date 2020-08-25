@@ -7,6 +7,7 @@
 #include "Object.h"
 #include "Exception.h"
 #include "Stack.h"
+#include "Queue.h"
 #include "BinNode_macro.h"
 
 namespace MyLib
@@ -88,8 +89,11 @@ private:
     /*后序遍历迭代版本*/
     template < typename VST >
     void traverPost_iter_V1(BinNodePosi(T) x, const VST &visit);
-    
+
     void gotoLeftMostLeaf(Stack<BinNodePosi(T)> s);
+
+    template < typename VST >
+    void traverLevel(const VST &visit);
 };
 
 template < typename T >
@@ -528,6 +532,25 @@ void BinNode<T>::traverPost_iter_V1(BinNodePosi(T) x, const VST &visit)
         /*访问节点*/
         x = s.pop();
         visit(x->m_data);
+    }
+}
+
+template < typename T >
+template < typename VST >
+void BinNode<T>::traverLevel(const VST &visit)
+{
+    Queue<BinNodePosi(T)> queue;
+
+    queue.enqueue(this);
+
+    while (!queue.empty())
+    {
+        BinNodePosi(T) x = queue.dequeue();
+        visit(x->m_data);
+        if (HasLChild(*x))
+            queue.enqueue(x->m_leftchild);
+        if (HasRChild(*x))
+            queue.enqueue(x->m_rightchild);
     }
 }
 
