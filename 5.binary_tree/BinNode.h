@@ -88,12 +88,9 @@ private:
 
     /*后序遍历迭代版本*/
     template < typename VST >
-    void traverPost_iter_V1(BinNodePosi(T) x, const VST &visit);
+    void traverPost_iter(BinNodePosi(T) x, const VST &visit);
 
-    void gotoLeftMostLeaf(Stack<BinNodePosi(T)> s);
-
-    template < typename VST >
-    void traverLevel(const VST &visit);
+    void gotoLeftMostLeaf(Stack<BinNodePosi(T)> &s);
 };
 
 template < typename T >
@@ -462,7 +459,7 @@ void BinNode<T>::traverPost(const VST &visit)
     switch (rand() % 2)
     {
         case 0 : { traverPost_recursion(this, visit); break; }
-        case 1 : { traverPost_iter_V1(this, visit); break; }
+        case 1 : { ::std::cout << "iter ..." << ::std::endl; traverPost_iter(this, visit); break; }
     }
 }
 
@@ -474,16 +471,22 @@ void BinNode<T>::traverPost_recursion(BinNodePosi(T) x, const VST &visit)
     if (NULL == x) return;
 
     traverPost_recursion(x->m_leftchild, visit);
-    traverPost_recursion(x->m_rightchild);
+    traverPost_recursion(x->m_rightchild, visit);
     visit(x->m_data);
 }
 
 template < typename T >
-void BinNode<T>::gotoLeftMostLeaf(Stack<BinNodePosi(T)> s)
+void BinNode<T>::gotoLeftMostLeaf(Stack<BinNodePosi(T)> &s)
 {
     BinNodePosi(T) x = s.top();
     /*以s栈顶元素为根节点,移动到其最高左侧可见叶节点处(Highest Leaf Visible From Left)*/
-    /*每遍历一个节点,需要将其左右孩子都入栈,因为后序遍历先访问左孩子,然后是右孩子,因此又是右顾左盼*/
+    /*
+    *   每遍历一个节点,需要将其左右孩子都入栈
+    *   因为后序遍历先访问左孩子,然后是右孩子,而我们这里使用的是栈结构,后进先出
+    *   因此只要左子树存在,必然在整个查找leftmost leaf过程一定先进入左子树中查找leftmost leaf
+    *   所以就要先将右孩子入栈(如果右孩子非空),然后再将左孩子入栈
+    *   当左孩子不存在时,才转而将右孩子入栈
+    */
     while (NULL != x)
     {
         /*尽可能向左*/
@@ -498,22 +501,28 @@ void BinNode<T>::gotoLeftMostLeaf(Stack<BinNodePosi(T)> s)
         else
         {
             s.push(x->m_rightchild);    /*只有左子树为空时才转向右孩子*/
+            /*
+            *   注意这里,因为前面判断了当前节点x无左孩子,因此这里不再做右孩子为空的判断
+            *   因为如果右孩子也为空,说明x就是叶节点,也就是我们要找的leftmost leaf
+            *   因此这里将空节点入栈达成循环退出条件
+            */
         }
 
         x = s.top();    /*转向左/右孩子*/
     }
 
     s.pop();    /*有一个空节点入栈了,构成while循环退出条件,这里把它取走*/
+    /*这时候栈顶元素即为此时的leftmost leaf*/
 }
 
 template < typename T >
 template < typename VST >
-void BinNode<T>::traverPost_iter_V1(BinNodePosi(T) x, const VST &visit)
+void BinNode<T>::traverPost_iter(BinNodePosi(T) x, const VST &visit)
 {
     Stack<BinNodePosi(T)> s;
 
-    /*整个后序遍历分为若干个片段,每一个片段,对应每一个在根节点左侧链上的节点*/
-    /*并从最深的那个节点开始,
+    /*整个后序遍历分为若干个片段,每一个片段,对应每一个在leftmost leaf与根节点的唯一通路上的节点*/
+    /*并从leftmost leaf开始,
     *   首先访问当前节点
     *   之后遍历其兄弟(必然是右兄弟)的子树(如果存在的话)
     *   之后回溯到它的父亲,也就是开始下一片段,直到parent引用为空
@@ -523,13 +532,22 @@ void BinNode<T>::traverPost_iter_V1(BinNodePosi(T) x, const VST &visit)
 
     while (!s.empty())
     {
+        /*
+        *   因为在goloLeftMostLeaf函数中
+        *   当待处理节点x的左孩子存在而右孩子不存在时,右孩子节点(NULL)是不会入栈的
+        *   也就是当我们在迭代过程中,x有可能是上一个处理的节点x的右兄弟,也有可能是这个节点x的父亲
+        *   其实应当是有一个右兄弟的,不过这个右兄弟是棵空树,等于不需要转至x的右兄弟处进行遍历了
+        *   也可以看作是将它遍历完了(走了过门)
+        *   因此这里的判断就是判断下一个应当是转至右兄弟处进行另一个局部的访问呢,还是已经到达转折点,可以回溯了
+        */
         if (s.top() != x->m_parent)
         {
             /*此时栈顶元素必然就是x的右兄弟,这时候s的栈顶元素应当对应一棵右子树,也就是另一个局部,调用gotoLeftMostLeaf找到其左侧链上最深的叶节点*/
             gotoLeftMostLeaf(s);
         }
-        /*否则就到了栈顶元素出栈并访问它的时候了,也就是回溯,并开始下一片段*/
-        /*访问节点*/
+
+        /*当前栈顶元素有两种可能: 一是它是x的父亲,也就是到了下一个片段, 二是它是x的右兄弟的子树中的leftmost leaf,这个其实也可以认为是下一个片段*/
+        /*因此不管怎样,每一个片段开始都是访问节点*/
         x = s.pop();
         visit(x->m_data);
     }

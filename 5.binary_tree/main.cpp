@@ -41,7 +41,8 @@ int main(void)
 
     visit visitor;
 
-    tree.travIn(visitor);
+    //tree.travIn(visitor);
+    tree.travPost(visitor);
 #if 0
     MyLib::BinTree<int> *new_tree = tree.secede(r1);
 

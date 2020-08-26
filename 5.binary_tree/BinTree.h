@@ -47,6 +47,14 @@ public:
     template < typename VST >
     void travIn(const VST &visit);
 
+    /*二叉树的后序遍历*/
+    template < typename VST >
+    void travPost(const VST &visit);
+
+    /*二叉树的层次遍历*/
+    template < typename VST >
+    void travLevel(const VST &visit);
+
      ~BinTree();
 
 protected:
@@ -288,6 +296,22 @@ void BinTree<T>::travIn(const VST &visit)
 {
     if (NULL != m_root)
         m_root->traverIn(visit);
+}
+
+template < typename T >
+template < typename VST >
+void BinTree<T>::travPost(const VST &visit)
+{
+    if (NULL != m_root)
+        m_root->traverPost(visit);
+}
+
+template < typename T >
+template < typename VST >
+void BinTree<T>::travLevel(const VST &visit)
+{
+    if (NULL != m_root)
+        m_root->traverLevel(visit);
 }
 
 template < typename T >
