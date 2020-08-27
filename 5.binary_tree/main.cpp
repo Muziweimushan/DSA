@@ -24,9 +24,15 @@ public:
     }
 };
 
+extern void queen_solution_V1(int n);
 
 int main(void)
 {
+
+    queen_solution_V1(8);
+
+    return 0;
+
     MyLib::BinTree<int> tree;
 
     tree.insertAsRoot(0);
