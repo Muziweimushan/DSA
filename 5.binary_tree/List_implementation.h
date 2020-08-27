@@ -308,6 +308,8 @@ int List<T>::deduplicate()
 
 		p = p->m_succ;
 	}
+
+    return old_size - m_size;
 }
 
 template < typename T >
