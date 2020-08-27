@@ -224,7 +224,7 @@ int BinTree<T>::removeAt(BinNodePosi(T) x)
     if (NULL == x)
         return 0;   /*递归基,空树直接返回,规模为0*/
 
-    ret = 1 + removeAt(x->m_leftchild) + removeAt(x->m_rightchild);
+    ret = 1 + removeAt(x->m_leftchild) + removeAt(x->m_rightchild); /*规模算上节点本身*/
 
     /*TODO:节点中的m_data空间存在问题*/
     delete x;
