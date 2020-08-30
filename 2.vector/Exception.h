@@ -6,7 +6,7 @@
 namespace MyLib
 {
 
-#define THROW_EXCEPTION(e, m) throw(e(m, __func__, __LINE__))
+#define THROW_EXCEPTION(e, m) throw(e(m, __FILE__, __LINE__))
 
 class Exception : public Object
 {
