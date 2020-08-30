@@ -15,9 +15,6 @@ void test(MyLib::BinTree<int> &tree, MyLib::BinTree<int> *tree2)
     tree.attachAsLeftChild(tree.root(), tree2);
 }
 
-template < typename T >
-void bintree_reconstruction_preorder(MyLib::Vector<T> &preorder, MyLib::Vector<T> &inorder);
-
 int main(void)
 {
     MyLib::Vector<int> preorder;
@@ -40,7 +37,7 @@ int main(void)
     inorder.insert(3);
     inorder.insert(8);
     inorder.insert(6);
-    bintree_reconstruction_preorder(preorder, inorder);
+    bintree_reconstruction_preorder<int>(preorder, inorder);
 
 #if 0
     MyLib::BinTree<int> tree;

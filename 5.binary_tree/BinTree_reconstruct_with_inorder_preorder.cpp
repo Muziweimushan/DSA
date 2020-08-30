@@ -1,15 +1,14 @@
+#pragma once
+
+#ifndef __BINTREE_RECONSTRUCT_PREORDER_H__
+#define __BINTREE_RECONSTRUCT_PREORDER_H__
+
 #include <iostream>
 
 #include "BinTree.h"
 
-class visit
+namespace MyLib
 {
-public:
-    void operator ()(int &data) const
-    {
-        cout << data << endl;
-    }
-};
 
 template < typename T >
 MyLib::BinNode<T> *reconstruct(MyLib::Vector<T> &preorder, int pre_start, int pre_end, MyLib::Vector<T> &inorder, int in_start, int in_end)
@@ -100,3 +99,7 @@ void bintree_reconstruction_preorder(MyLib::Vector<T> &preorder, MyLib::Vector<T
         cout << "..." << endl;
     }
 }
+
+}
+
+#endif
