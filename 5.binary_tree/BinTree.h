@@ -4,6 +4,8 @@
 
 #include <algorithm>
 #include "BinNode.h"
+#include "Vector.h"
+
 
 namespace MyLib
 {
@@ -55,9 +57,12 @@ public:
     template < typename VST >
     void travLevel(const VST &visit);
 
+    /*二叉树的重建接口*/
+    //static BinNodePosi(T) reconstruct_with_preorder_inorder(const Vector<T> &preorder, const Vector<T> &inorder);
+
      ~BinTree();
 
-protected:
+//protected:
     /*约定当m_root为空时m_size为0*/
     int m_size; /*记录当前二叉树规模*/
     BinNodePosi(T) m_root;  /*二叉树的根节点*/
