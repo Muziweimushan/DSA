@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include "BinTree.h"
-
+#include "TrieTreeNode.h"
 using namespace MyLib;
 
 template < typename T >
@@ -238,6 +238,10 @@ int main(void)
     //bintree_reconstruction_preorder<int>(preorder, inorder);
     bintree_reconstruction_postorder(postorder, inorder);
 
+
+    TrieTreeNode *node = new TrieTreeNode();
+
+    delete node;
     return 0;
 }
 
