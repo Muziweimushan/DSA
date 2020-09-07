@@ -560,12 +560,13 @@ void BinNode<T>::traverLevel(const VST &visit)
 {
     Queue<BinNodePosi(T)> queue;
 
-    queue.enqueue(this);
+    queue.enqueue(this);    /*根节点首先入队列*/
 
-    while (!queue.empty())
+    while (!queue.empty())  /*直到队列变空,迭代随之结束*/
     {
-        BinNodePosi(T) x = queue.dequeue();
-        visit(x->m_data);
+        BinNodePosi(T) x = queue.dequeue(); /*队首元素出队列*/
+        visit(x->m_data);   /*并随即访问它*/
+        /*左顾右盼:左右孩子依次入队列*/
         if (HasLChild(*x))
             queue.enqueue(x->m_leftchild);
         if (HasRChild(*x))

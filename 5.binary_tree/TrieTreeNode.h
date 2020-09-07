@@ -3,9 +3,8 @@
 #ifndef __TRIETREENODE_H__
 #define __TRIETREENODE_H__
 
-
+#include <cstring>
 #include "Object.h"
-
 
 namespace MyLib
 {
@@ -22,13 +21,38 @@ typedef enum
 }TRIETREE_NODE_COLOR_E;
 
 /*trie-tree节点定义*/
-class TrieTreeNode : public Object
+struct TrieTreeNode
 {
-public:
     TRIETREE_NODE_COLOR_E m_color;
     TrieTreePosi m_child[TRIETREE_CHARSET_NUM];
 };
 
+class TrieTree : public Object
+{
+public:
+    TrieTree();
+    /*添加新key*/
+    void insert(const char *key);
+    /*删除key*/
+    void remove(const char *key);
+    /*判空*/
+    bool empty() const;
+    /*清空*/
+    void clean();
+    /*查找操作*/
+    bool find(const char *key) const;
+
+    virtual ~TrieTree();
+private:
+    TrieTreeNode m_root; 
+
+    void insert(const char *key, int key_len, int d, TrieTreePosi &pos);
+    void initTreeNode(TrieTreePosi node);
+    void clean(TrieTreePosi &pos);
+    void remove(const char *key, const int key_len, int d, TrieTreePosi &pos);
+    /*功能函数:在树中查找key,当前深度为depth,对应的树节点为pos,如查找到了,则返回最底下的节点的位置,找不到返回空*/
+    TrieTreePosi find(const char *key, const int key_len, int depth, TrieTreePosi pos) const;
+};
 
 
 }

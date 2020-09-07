@@ -132,7 +132,10 @@ BinNode<T> *reconstruct_by_post(Vector<T> &postorder, int post_start, int post_e
         /*在中序遍历数组中定位根节点的位置*/
         int rank_of_root = inorder.find(in_start, in_end, root);
         if (-1 == rank_of_root)
+        {
+            ::std::cout << "there is something wrong ..." << ::std::endl;
             throw("there is something wrong ...");  /*一定会找到的才对*/
+        }
 
         ret = new BinNode<T> (postorder[post_end - 1]);
         /*分别计算左右子树的规模*/
@@ -232,16 +235,26 @@ int main(void)
     postorder.insert(4);
     postorder.insert(2);
     postorder.insert(5);
-    postorder.insert(8);
+    postorder.insert(1);
 
 
     //bintree_reconstruction_preorder<int>(preorder, inorder);
     bintree_reconstruction_postorder(postorder, inorder);
 
+    MyLib::TrieTree t;
 
-    TrieTreeNode *node = new TrieTreeNode();
+    t.insert("abc");
+    t.insert("b");
+    t.insert("aa");
+    t.insert("basg");
 
-    delete node;
+    ::std::cout << t.find("abc") << ::std::endl;
+    ::std::cout << t.find("a") << ::std::endl;
+    ::std::cout << t.find("dav") << ::std::endl;
+
+    t.remove("aa");
+    ::std::cout << t.find("aa") << ::std::endl;
+
     return 0;
 }
 
