@@ -24,8 +24,6 @@ public:
     /*获取二叉树的根节点*/
     BinNodePosi(T) root(void) const { return m_root; }
 
-    /*删除以x为根节点的子树,并返回删除的子树规模*/
-
     /*作为根节点插入空的二叉树*/
     BinNodePosi(T) insertAsRoot(const T &e);
     /*将data作为x的左孩子插入,并返回新插入节点的位置*/
