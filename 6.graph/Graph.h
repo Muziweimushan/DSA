@@ -99,10 +99,11 @@ public:
 
     /********************图算法统一ADT***********************/
 
-private:
+protected:
     int m_edge_cnt;     /*边总数*/
     int m_vertex_cnt;   /*顶点总数*/
 
+private:
     /*复位所有边和顶点的辅助信息*/
     void reset(void);
 };
