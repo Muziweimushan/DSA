@@ -4,6 +4,7 @@
 #define __GRAPH_H__
 
 #include "Object.h"
+#include "Queue.h"
 
 namespace MyLib
 {
@@ -98,6 +99,8 @@ public:
     virtual Te &edge(int, int) = 0;
 
     /********************图算法统一ADT***********************/
+    /*全图的bfs算法,以编号为s的顶点开始*/
+    void bfs(int s);
 
 protected:
     int m_edge_cnt;     /*边总数*/
@@ -106,6 +109,13 @@ protected:
 private:
     /*复位所有边和顶点的辅助信息*/
     void reset(void);
+
+    /*内部算法接口*/
+    /*以v作为起点的bfs-tree遍历算法*/
+    /*实际上这里将得到一个覆盖起点s的连通域(连通分量或可达分量)*/
+    /*由于整个图算法中可能有多个连通域,且这些连通域之间不相连*/
+    /*因此这个接口函数作为整个图算法的bfs算法主体实现*/
+    void BFS(int v, int &clock);
 };
 
 template < typename Tv, typename Te >
@@ -124,6 +134,78 @@ template < typename Tv, typename Te >
 int Graph<Tv, Te>::getVertexCnt(void) const
 {
     return m_vertex_cnt;
+}
+
+template < typename Tv, typename Te >
+void Graph<Tv, Te>::BFS(int v, int &clock)
+{
+    /*实现以v作为起点的BFS算法*/
+    
+    /*BFS类似于二叉树的层次遍历,因此此处也需要使用辅助队列*/
+    Queue<int> queue;
+
+    /*初始化工作*/
+    status(v) = VERTEX_STAT_DISCOVERED;
+    queue.enqueue(v);   /*顶点v入队,将它作为起点*/
+
+    /*这里的流程与二叉树的层次遍历几乎一致*/
+    while (!queue.empty())
+    {
+        int v = queue.dequeue();
+        dTime(v) = ++clock;
+
+        /*访问当前顶点v*/
+        /*BFS算法仅仅是一个骨架,提供了对图的一种遍历方法,在此处实际上需要按实际情况添加对顶点v的数据域进行处理的代码*/
+
+
+        /*紧接着*/
+        /*依次访问v的所有未被访问的邻接顶点*/
+        /*遍历邻接矩阵中的第v行, 遍历顶点v的所有邻接顶点*/
+        /*借助firstNbr和nextNbr接口完成,nextNbr将一直返回下一个邻接顶点的编号,如果没有则返回-1*/
+        for (int u = firstNbr(v); u > -1; u = nextNbr(v, u))    /*访问v的每一个邻居*/
+        {
+            /*看看当前顶点是否是未访问的*/
+            if (VERTEX_STAT_UNDISCOVERED == status(u))
+            {
+                /*当前顶点u确实是未被访问的,令它入队*/
+                /*当然一些辅助信息还是需要填充的*/ 
+                parent(u) = v;  /*在BFS Tree中顶点v就是u的父亲了*/
+                status(u) = VERTEX_STAT_DISCOVERED; /*将它入队,状态应改为已发现的,等到它作为队头元素被取出并处理时再将它状态改为已访问*/
+                /*将从v到u之间的边设置为TREE,即BFS示例中的联边加粗*/
+                type(v, u) = EDGE_TYPE_TREE;
+                queue.enqueue(u);
+            }
+            else
+            {
+                /*否则实际上我们在这一轮迭代中不对顶点u进行处理*/
+                /*在这里将顶点v到顶点u之间的联边类型设置为跨边,即示例图中颜色变成浅色*/
+                type(v, u) = EDGE_TYPE_CROSS;
+            }
+        }
+
+        /*最后将顶点v标记为已经访问的*/
+        status(v) = VERTEX_STAT_VISITED;
+    }
+}
+
+template < typename Tv, typename Te >
+void Graph<Tv, Te>::bfs(int s)
+{
+    /*检查s的合法性*/
+    if (0 < s || s >= m_vertex_cnt)
+        THROW_EXCEPTION(IndexOutOfBoundException, "trying to start bfs from invalid index of vertex ...");
+
+    int clock = 0;  /*最开始时间设置为0*/
+    int v = s;
+
+    reset();
+   
+    /*基于BFS接口实现能遍历以顶点v作为根节点的bfs-tree中的所有顶点,但是这颗bfs-tree不一定包含图中所有顶点,因此整个图的BFS算法应当检查所有的顶点,如果发现一个顶点处于undiscovered状态,则随即以这个顶点为起点调用一次BFS接口,直到所有顶点的状态都不为discovered,此时认为图中所有顶点按照BFS算法顺序进行了一次且仅一次的访问*/ 
+    do
+    {
+        if (VERTEX_STAT_UNDISCOVERED == status(v))
+            BFS(v, clock);
+    } while (s != (v = (++v) % m_vertex_cnt));  /*环形转一圈*/
 }
 
 }

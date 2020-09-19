@@ -1,11 +1,11 @@
 #include <iostream>
 
-#include "GraphMatrix.h"
+#include "MatrixGraph.h"
 
 
 int main(void)
 {
-    MyLib::GraphMatrix<int, int> graph;
+    MyLib::MatrixGraph<int, int> graph;
 
 
     (void)graph.insert(10);

@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef __GRAPHMATRIX_H__
-#define __GRAPHMATRIX_H__
+#ifndef __MATRIXGRAPH_H__
+#define __MATRIXGRAPH_H__
 
 #include <climits>
 #include "Graph.h"
@@ -50,11 +50,11 @@ public:
 
 /*使用邻接矩阵表示的图的ADT实现*/
 template < typename Tv, typename Te >
-class GraphMatrix : public Graph<Tv, Te>
+class MatrixGraph : public Graph<Tv, Te>
 {
 public:
     /*构造函数*/
-    GraphMatrix()
+    MatrixGraph()
     {
         this->m_edge_cnt = 0;
         this->m_vertex_cnt = 0;
@@ -140,7 +140,7 @@ public:
     int nextNbr(int i, int j)
     {
         /*逆向查找*/
-        while ((j > -1) && exist(i, --j));
+        while ((j > -1) && !exist(i, --j));
 
         return j;
     }
@@ -298,7 +298,7 @@ public:
         return ret;
     }
 
-    ~GraphMatrix()
+    ~MatrixGraph()
     {
         for (int i = 0; i < this->m_vertex_cnt; i++)
             for (int j = 0; j < this->m_vertex_cnt; j++)
