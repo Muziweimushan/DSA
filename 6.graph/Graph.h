@@ -155,7 +155,10 @@ void Graph<Tv, Te>::BFS(int v, int &clock)
         dTime(v) = ++clock;
 
         /*访问当前顶点v*/
-        /*BFS算法仅仅是一个骨架,提供了对图的一种遍历方法,在此处实际上需要按实际情况添加对顶点v的数据域进行处理的代码*/
+        /*
+        *   BFS算法仅仅是一个骨架,提供了对图的一种遍历方法,
+        *   在此处实际上需要按实际情况添加对顶点v的数据域进行处理的代码
+        */
 
 
         /*紧接着*/
@@ -170,7 +173,8 @@ void Graph<Tv, Te>::BFS(int v, int &clock)
                 /*当前顶点u确实是未被访问的,令它入队*/
                 /*当然一些辅助信息还是需要填充的*/ 
                 parent(u) = v;  /*在BFS Tree中顶点v就是u的父亲了*/
-                status(u) = VERTEX_STAT_DISCOVERED; /*将它入队,状态应改为已发现的,等到它作为队头元素被取出并处理时再将它状态改为已访问*/
+                /*将它入队,状态应改为已发现的,等到它作为队头元素被取出并处理时再将它状态改为已访问*/
+                status(u) = VERTEX_STAT_DISCOVERED; 
                 /*将从v到u之间的边设置为TREE,即BFS示例中的联边加粗*/
                 type(v, u) = EDGE_TYPE_TREE;
                 queue.enqueue(u);
@@ -200,7 +204,14 @@ void Graph<Tv, Te>::bfs(int s)
 
     reset();
    
-    /*基于BFS接口实现能遍历以顶点v作为根节点的bfs-tree中的所有顶点,但是这颗bfs-tree不一定包含图中所有顶点,因此整个图的BFS算法应当检查所有的顶点,如果发现一个顶点处于undiscovered状态,则随即以这个顶点为起点调用一次BFS接口,直到所有顶点的状态都不为discovered,此时认为图中所有顶点按照BFS算法顺序进行了一次且仅一次的访问*/ 
+    /*
+    *   基于BFS接口实现能遍历以顶点v作为根节点的bfs-tree中的所有顶点,
+    *   但是这颗bfs-tree不一定包含图中所有顶点
+    *   因此整个图的BFS算法应当检查所有的顶点,
+    *   如果发现一个顶点处于undiscovered状态,则随即以这个顶点为起点调用一次BFS接口
+    *   直到所有顶点的状态都不为discovered
+    *   此时认为图中所有顶点按照BFS算法顺序进行了一次且仅一次的访问
+    */
     do
     {
         if (VERTEX_STAT_UNDISCOVERED == status(v))
