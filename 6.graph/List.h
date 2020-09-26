@@ -3,6 +3,9 @@
 #ifndef __LIST_H__
 #define __LIST_H__
 
+#include <iostream>
+#include <cstdlib>
+
 #include "ListNode.h"
 
 namespace MyLib

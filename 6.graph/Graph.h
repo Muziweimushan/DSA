@@ -102,6 +102,9 @@ public:
     /*全图的bfs算法,以编号为s的顶点开始*/
     void bfs(int s);
 
+    /*全图的dfs算法,以编号为s的顶点开始*/
+    void dfs(int s);
+
 protected:
     int m_edge_cnt;     /*边总数*/
     int m_vertex_cnt;   /*顶点总数*/
@@ -116,6 +119,8 @@ private:
     /*由于整个图算法中可能有多个连通域,且这些连通域之间不相连*/
     /*因此这个接口函数作为整个图算法的bfs算法主体实现*/
     void BFS(int v, int &clock);
+
+    void DFS(int v, int &clock);
 };
 
 template < typename Tv, typename Te >
@@ -219,7 +224,74 @@ void Graph<Tv, Te>::bfs(int s)
     } while (s != (v = (++v) % m_vertex_cnt));  /*环形转一圈*/
 }
 
+template < typename Tv, typename Te >
+void Graph<Tv, Te>::DFS(int v, int &clock)
+{
+    /*将v标记为discovered*/
+    status(v) = VERTEX_STAT_DISCOVERED;
+    dTime(v) = ++clock; /*记录顶点v的发现时间*/
+
+    ::std::cout << "processing vertex " << v << " ..." << ::std::endl;
+
+    /*遍历顶点v的所有邻居*/
+    for (int u = firstNbr(v); u > -1; u = nextNbr(v, u))
+    {
+        if (VERTEX_STAT_UNDISCOVERED == status(u))
+        {
+            /*如果顶点u是未发现的,则应该引入树边*/
+            edge(v, u) = EDGE_TYPE_TREE;
+            parent(u) = v;  /*自然的,在遍历树中v就是u的父节点了*/
+            DFS(u, clock);  /*递归深入顶点u进行DFS*/
+        }
+        else if (VERTEX_STAT_DISCOVERED == status(u))
+        {
+            /*如果顶点u的状态是发现而未处理完毕,说明在遍历树中v实际上是u的后代*/
+            edge(v, u) = EDGE_TYPE_BACKARD; /*后向边,回边*/
+        }
+        else
+        {
+            /*顶点u的状态为已处理完毕*/
+            if (dTime(v) < dTime(u))
+                edge(v, u) = EDGE_TYPE_FORWARD; /*前向边*/
+            else
+                edge(v, u) = EDGE_TYPE_CROSS;   /*两个顶点在遍历树中不构成祖先后代关系*/
+        }
+    }
+
+    /*顶点v处理完毕,标记为visited,已经记录ftime*/
+    fTime(v) = ++clock;
+    status(v) = VERTEX_STAT_VISITED;
+
+    return;
 }
 
+template < typename Tv, typename Te >
+void Graph<Tv, Te>::dfs(int s)
+{
 
+    /*检查s的合法性*/
+    if (0 < s || s >= m_vertex_cnt)
+        THROW_EXCEPTION(IndexOutOfBoundException, "trying to start dfs from invalid index of vertex ...");
+
+    int clock = 0;  /*最开始时间设置为0*/
+    int v = s;
+
+    reset();
+   
+    /*
+    *   基于BFS接口实现能遍历以顶点v作为根节点的dfs-tree中的所有顶点,
+    *   但是这颗dfs-tree不一定包含图中所有顶点
+    *   因此整个图的DFS算法应当检查所有的顶点,
+    *   如果发现一个顶点处于undiscovered状态,则随即以这个顶点为起点调用一次DFS接口
+    *   直到所有顶点的状态都不为discovered
+    *   此时认为图中所有顶点按照DFS算法顺序进行了一次且仅一次的访问
+    */
+    do
+    {
+        if (VERTEX_STAT_UNDISCOVERED == status(v))
+            DFS(v, clock);
+    } while (s != (v = (++v) % m_vertex_cnt));  /*环形转一圈*/
+}
+
+}
 #endif

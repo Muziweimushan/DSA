@@ -3,9 +3,6 @@
 #ifndef __LIST_IMPLEMENTATION_H__
 #define __LIST_IMPLEMENTATION_H__
 
-#include <iostream>
-using namespace std;
-
 template < typename T >
 List<T>::List()
 {
@@ -79,7 +76,7 @@ Posi(T) List<T>::find(const T &e, int n, Posi(T) p) const
 {
 	Rank r = rank(p);
 	Posi(T) ret = NULL;
-	cout << "r = " << r << endl;
+	::std::cout << "r = " << r << ::std::endl;
 	/*0 <= n <= rank(p) <= size, 等于size时等于从末节点开始向前找*/
 	if ((n >= 0) && (n <= r) && (r <= m_size))
 	{
@@ -402,8 +399,8 @@ Posi(T) List<T>::search(const T &e, int n, Posi(T) p) const
 	}
 	else
 	{
-		cout << "here" << endl;
-		cout << "n = " << n << ", r = " << r << ", m_size = " << m_size << endl;
+		::std::cout << "here" << ::std::endl;
+		::std::cout << "n = " << n << ", r = " << r << ", m_size = " << m_size << ::std::endl;
 		THROW_EXCEPTION(InvalidParameterException, "Trying to search element from list with invalid params ...");
 	}
 	
@@ -510,7 +507,7 @@ void List<T>::insertionSort(Posi(T) p, int n)
 			Posi(T) pos = search(p->m_data, i, p);	/*前面一段是有序的,通过search接口查找,最坏情况(也就是完全逆序,每次都要走完i次)O(i)的复杂度*/
 			/*将当前元素从后面的区间中删掉,然后指向下一个*/
 			Posi(T) toDel = p;
-			p = p->m_succ;
+			p = p->m_succ;/*无序部分规模缩小一个单位*/
 			removeFromList(toDel);
 			/*然后将这个节点插入到pos的后面*/
 			insertAfter(pos, toDel);
@@ -533,7 +530,7 @@ void List<T>::sort()
 template < typename T >
 void List<T>::sort(Posi(T) p, int n)
 {
-	int index = rand() % 3;
+	int index = ::rand() % 3;
 
 	/*抄袭书里边的写法,实际上是按照需要选择合适的排序算法,这样写可以测试所有的排序方法*/
 	switch (index)
