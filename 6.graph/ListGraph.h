@@ -50,8 +50,9 @@ public:
     {
     }
 
-    bool operator == (ListEdge<Te> *obj) const
-    {
+    bool operator == (ListEdge<Te> *&obj) const
+    {   
+        ::std::cout << "operator == of ListEdge ..." << ::endl;
         return this->m_vertex_num == obj->m_vertex_num;
     }
 };
@@ -146,10 +147,15 @@ public:
     /*若已枚举至邻居j,则转向下一邻居*/
     int nextNbr(int i, int j)
     {
-        /*逆向查找*/
-        while ((j > -1) && !exist(i, --j));
-
-        return j;
+        Posi(ListEdge<Te> *) edge = position(i, j);
+        /*通过list节点的succ指针访问下一个节点,之后通过List的valid接口判断下一个节点是否合法*/
+        Posi(ListEdge<Te> *) next = edge->succ();
+        if (m_edge_set[i].valid(next))
+        {
+            return next->data()->m_vertex_num;
+        }
+        else
+            return -1;  /*说明当前顶点j已经是邻接表中第i行的最后一个元素了*/
     }
 
     /*查找顶点i的第一个邻居*/
@@ -162,24 +168,48 @@ public:
         else
             ret = -1;
 
+        //::std::cout << "firNbr = " << ret << ::std::endl;
+
         return ret;
     }
 
     /*插入一个顶点,返回顶点的编号*/
     int insert(const Tv &data)
     {
-        /*插入一个顶点需要更改两个主要的成员变量:顶点集合(向量)需要增加一个元素,邻接矩阵(边集)看做是一个二维表格,需要新增加一列,之后新增一行,因为规模从n变为n+1*/
-        for (int i = 0; i < this->m_vertex_cnt; i++)
-            m_edge_set[i].insert(NULL);
+        /*首先邻接表需要新增一行,元素类型为list of edge*/
+        List< ListEdge<Te> * > tmp;
 
-        /*规模增加1*/
+        //::std::cout << "header of tmp = " <<  tmp.m_header << ::std::endl;
+        // ::printf("tmp : succ of header = %p\n", tmp.m_header->m_succ);
+        // ::printf("tmp : pred of header = %p\n", tmp.m_header->m_pred);
+        // ::printf("tmp : succ of trailer = %p\n", tmp.m_trailer->m_succ);
+        // ::printf("tmp : pred of trailer = %p\n", tmp.m_trailer->m_pred);
+
+
+        //::printf("\n\n\ncut here ...\n\n\n");
+
+        m_edge_set.insert(tmp);
+
+        //::std::cout << "edge set insert ..." << ::std::endl;
+        //::std::cout << "set size = " << m_edge_set.size() << ::std::endl;
+
+        List< ListEdge<Te> * > &list = m_edge_set[0];
+#if 0
+        ::std::cout << "addr of inner list = " << &list << ::std::endl;
+
+        ::printf("inner list : succ of header = %p\n", list.m_header->m_succ);
+        ::printf("inner list : pred of header = %p\n", list.m_header->m_pred);
+        ::printf("inner list : succ of trailer = %p\n", list.m_trailer->m_succ);
+        ::printf("inner list : pred of trailer = %p\n", list.m_trailer->m_pred);
+
+
+        ::printf("\n\n\ncut here ...\n\n\n");
+#endif
+        /*顶点个数增加1*/
         this->m_vertex_cnt++;
-        /*新增加一行*/
-        int cnt = this->m_vertex_cnt;
-        m_edge_set.insert(Vector< Edge<Te> * >(cnt, cnt, (Edge<Te> *)NULL));
 
         /*最后再顶点集合中新增一个元素*/
-        return m_vertex_vec.insert(Vertex<Tv>(data));
+        return m_vertex_vec.insert(ListVertex<Tv>(data));
     }
 
     /*删除顶点i以及它的所有关联边,返回顶点i的数据域*/
@@ -187,19 +217,17 @@ public:
     {
         /*与顶点插入对应*/
         /*删除邻接矩阵的第i行*/
-        for (int j = 0; j < this->m_vertex_cnt; j++)
+        while (m_edge_set[i].size() > 0)
         {
-            if (exist(i, j))
-            {
-                Edge<Te> *toDel = m_edge_set[i][j];
-                m_edge_set[i][j] = NULL;
-                /*如果这一条边存在,也就是顶点i指向了顶点j,而顶点i被删除了,因此顶点j的入度需要减一*/
-                m_vertex_vec[j].m_inDegree--;
-                /*同时少了一条边,边计数成员减一*/
-                this->m_edge_cnt--;
+            /*删除顶点i的所有出边*/
+            Posi(ListEdge<Te> *) pos = m_edge_set[i].first();
 
-                delete toDel;
-            }
+            ListEdge<Te> *toDel = m_edge_set[i].remove(pos);
+            int vertex_num = toDel->m_vertex_num;
+            m_vertex_vec[vertex_num].m_inDegree--;
+            this->m_edge_cnt--;
+        
+            delete toDel;
         }
 
         /*可以将这一行删掉了*/
@@ -211,17 +239,17 @@ public:
         Tv ret = vertex(i);
         m_vertex_vec.remove(i);
 
-        /*在邻接矩阵中删去第i列*/
+        /*检查顶点i的入边*/
         for (int j = 0; j < this->m_vertex_cnt; j++)
         {
-            /*等价于是每一行的第i个元素要删除掉*/
-            Edge<Te> *toDel = m_edge_set[j].remove(i);
-            if (NULL != toDel)
+            Posi(ListEdge<Te> *) edge = position(j, i);
+            if (NULL != edge)
             {
-                /*顶点j指向顶点i的联边需要删除,于是乎顶点j的出度需要减一*/
-                m_vertex_vec[j].m_outDegree--;
-                /*肯定同时边数也要减一*/
-                this->m_edge_cnt--;
+                /*存在一条从j指向i的边,删掉它*/
+                ListEdge<Te> *toDel = m_edge_set[j].remove(edge);
+                m_vertex_vec[j].m_outDegree--;  /*顶点j的出度减一*/
+                this->m_edge_cnt--; /*图的边数减一*/
+
                 delete toDel;
             }
         }
@@ -245,19 +273,35 @@ public:
     /*边(i, j)的数据域*/
     Te &edge(int i, int j)
     {
-        return position(i, j)->m_data;
+        ::std::cout << "ListGraph::edge ..." << ::std::endl;
+        Posi(ListEdge<Te> *) edge = position(i, j);
+        if (NULL != edge)
+            return edge->m_data->m_data;
+        else
+            THROW_EXCEPTION(InvalidOperationException, "Edge is not exist ...");
     }
     
     /*边(i, j)的类型*/
     EDGE_TYPE_E &type(int i, int j)
     {
-        return position(i, j)->m_type;
+        Posi(ListEdge<Te> *) edge = position(i, j);
+        if (NULL != edge)
+            return edge->m_data->m_type;
+        else
+        {
+            ::printf("find edge from %d to %d failed ...\n", i, j);
+            THROW_EXCEPTION(InvalidOperationException, "Edge is not exist ...");
+        }
     }
 
     /*边(i, j)的权重*/
     int &weight(int i, int j)
     {
-        return position(i, j)->m_weight;
+        Posi(ListEdge<Te> *) edge = position(i, j);
+        if (NULL != edge)
+            return edge->m_data->m_weight;
+        else
+            THROW_EXCEPTION(InvalidOperationException, "Edge is not exist ...");
     }
 
     /*在顶点i和顶点j之间联接一条权重为w的边e*/
@@ -266,10 +310,15 @@ public:
         if (exist(i, j))
             THROW_EXCEPTION(InvalidOperationException, "edge already exist ...");
 
+        ::printf("inserting edge from %d to %d ...\n", i, j);
+
         ListEdge<Te> *e = new ListEdge<Te>(data, w);
         if (NULL != e)
         {
+            e->m_vertex_num = j;    /*关联顶点编号*/
+            //::printf("lalala\n");
             m_edge_set[i].insertAsLast(e);
+            //::printf("endof lalala ...\n");
             this->m_edge_cnt++; /*图的边数量加一*/
             m_vertex_vec[i].m_outDegree++;  /*顶点i的出度加一*/
             m_vertex_vec[j].m_inDegree++;   /*顶点j的入度加一*/
@@ -318,7 +367,7 @@ public:
         }
     }
 
-private:
+public:
     /*顶点集,使用向量进行存储,即 a vector of vertices*/
     Vector< ListVertex<Tv> > m_vertex_vec;
     /*边集,同时也是邻接矩阵,采用邻接表的方式实现,即 A vertor of lists of edges*/
@@ -328,13 +377,32 @@ private:
     Posi(ListEdge<Te> *) position(int i, int j) const
     {
         /*首先检查i和j的合法性*/
-        if (i < 0 || i > this->m_vertex_cnt || j < 0 || j > this->m_vertex_cnt)
+        if (i < 0 || i >= this->m_vertex_cnt || j < 0 || j >= this->m_vertex_cnt)
+        {
+            //::printf("position invalid ...\n");
             THROW_EXCEPTION(IndexOutOfBoundException, "Index of vertex is invalid ...");
-        
-        Posi(ListEdge<Te> *) ret = NULL;
-        ListEdge<Te> tmp;
-        tmp.m_vertex_num = j;
-        ret = m_edge_set[i].find(&tmp);
+        }
+
+        //::printf("calling position, i = %d, j = %d\n", i, j);
+        //const List< ListEdge<Te> *> &list = m_edge_set[0];
+        //::std::cout << "set[0].succ = "<< list.m_trailer->m_succ << ::std::endl;
+
+        Posi(ListEdge<Te> *) ret = m_edge_set[i].first();
+        int n = 0;
+
+        for (n = 0; n < m_edge_set[i].size(); n++)
+        {
+             if (j == ret->m_data->m_vertex_num)
+             {
+                //::printf("find one edge ...\n");
+                break;
+             }
+             ret = ret->m_succ;
+        }
+        if (m_edge_set[i].size() == n)
+            ret = NULL;
+
+        //::printf("n = %d\n", n);
 
         return ret;
     }

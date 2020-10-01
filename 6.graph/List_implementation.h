@@ -12,6 +12,7 @@ List<T>::List()
 template < typename T >
 void List<T>::init(void)
 {
+    //::std::cout << "entering List<T>::init() ..." << ::std::endl;
     m_header = reinterpret_cast<Posi(T)> (&m_node_header);
     m_trailer = reinterpret_cast<Posi(T)> (&m_node_trailer);
     m_size = 0;
@@ -19,13 +20,19 @@ void List<T>::init(void)
     m_header->m_succ = m_trailer;
     m_trailer->m_succ = NULL;
     m_trailer->m_pred = m_header;
+
+    //::std::cout << "succ of trailer = " << m_trailer->m_succ << ::std::endl;
+
+    //::std::cout << "sizeof(ListNode) = " << sizeof(ListNode<T>) << ::std::endl;
+    //::std::cout << "sizeof(m_node_header) = " << sizeof(m_node_header) << ::std::endl;
+    //::std::cout << "leaving List<T>::init() ..." << ::std::endl;
 }
 
 template < typename T >
 T &List<T>::operator [] (Rank r) const
 {
     /*位置r的合法性检查: 0 <= r < size*/
-    if (0 <= r && r > m_size)
+    if (0 <= r && r < m_size)
     {
         Posi(T) p = first();
  
@@ -39,6 +46,8 @@ T &List<T>::operator [] (Rank r) const
     }
     else
     {
+        ::std::cout << "r = " << r << " m_size = " << m_size << ::std::endl;
+        ::sleep(1);
         THROW_EXCEPTION(IndexOutOfBoundException, "Index of List out of bound ...");
     }
 }
@@ -50,9 +59,19 @@ Rank List<T>::rank(Posi(T) p) const
 	Rank ret = -1;/*header的秩就是-1*/
 	Posi(T) start = m_header;
 
+    ::std::cout << "entering List<T>::rank(Posi(T) p) ..." << ::std::endl;
+    ::std::cout << "list size = " << m_size << ::std::endl;
+    ::std::cout << "start = " << start << ::std::endl;
+    ::std::cout << "succ of start = " << (start->m_succ) << ::std::endl;
+    ::std::cout << "trailer = " << m_trailer << ::std::endl;
+    ::std::cout << "succ of trailer = " << m_trailer->m_succ << ::std::endl;
+
+    //::sleep(1);
+
 	/*从首节点一直遍历到尾节点*/
 	while (NULL != start)
 	{
+        ::std::cout << "rank running ... " << ::std::endl;
 		if (start == p)
 		{
 			/*找到了*/
@@ -60,6 +79,8 @@ Rank List<T>::rank(Posi(T) p) const
 		}
 		ret++;
 		start = start->m_succ;
+
+        ::std::cout << "start = " << start << ::std::endl;
 	}
 	/*ret的合法取值范围是[-1, size], 当ret = size + 1表明p不在列表中, ret == -1表明p是列表的header, ret == size表明p是列表的trailer*/
 	return ret;

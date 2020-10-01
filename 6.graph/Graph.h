@@ -165,7 +165,7 @@ void Graph<Tv, Te>::BFS(int v, int &clock)
         *   在此处实际上需要按实际情况添加对顶点v的数据域进行处理的代码
         */
 
-
+        ::std::cout << "process vertex " << vertex(v) << ::std::endl;
         /*紧接着*/
         /*依次访问v的所有未被访问的邻接顶点*/
         /*遍历邻接矩阵中的第v行, 遍历顶点v的所有邻接顶点*/
@@ -239,22 +239,22 @@ void Graph<Tv, Te>::DFS(int v, int &clock)
         if (VERTEX_STAT_UNDISCOVERED == status(u))
         {
             /*如果顶点u是未发现的,则应该引入树边*/
-            edge(v, u) = EDGE_TYPE_TREE;
+            type(v, u) = EDGE_TYPE_TREE;
             parent(u) = v;  /*自然的,在遍历树中v就是u的父节点了*/
             DFS(u, clock);  /*递归深入顶点u进行DFS*/
         }
         else if (VERTEX_STAT_DISCOVERED == status(u))
         {
             /*如果顶点u的状态是发现而未处理完毕,说明在遍历树中v实际上是u的后代*/
-            edge(v, u) = EDGE_TYPE_BACKARD; /*后向边,回边*/
+            type(v, u) = EDGE_TYPE_BACKARD; /*后向边,回边*/
         }
         else
         {
             /*顶点u的状态为已处理完毕*/
             if (dTime(v) < dTime(u))
-                edge(v, u) = EDGE_TYPE_FORWARD; /*前向边*/
+                type(v, u) = EDGE_TYPE_FORWARD; /*前向边*/
             else
-                edge(v, u) = EDGE_TYPE_CROSS;   /*两个顶点在遍历树中不构成祖先后代关系*/
+                type(v, u) = EDGE_TYPE_CROSS;   /*两个顶点在遍历树中不构成祖先后代关系*/
         }
     }
 
