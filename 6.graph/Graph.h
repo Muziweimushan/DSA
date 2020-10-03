@@ -5,6 +5,7 @@
 
 #include "Object.h"
 #include "Queue.h"
+#include "Stack.h"
 
 namespace MyLib
 {
@@ -121,6 +122,7 @@ private:
     void BFS(int v, int &clock);
 
     void DFS(int v, int &clock);
+    void DFS_V2(int v, int &clock);
 };
 
 template < typename Tv, typename Te >
@@ -236,6 +238,7 @@ void Graph<Tv, Te>::DFS(int v, int &clock)
     /*遍历顶点v的所有邻居*/
     for (int u = firstNbr(v); u > -1; u = nextNbr(v, u))
     {
+        /*不同状态的邻居进入不同分支分别处理*/
         if (VERTEX_STAT_UNDISCOVERED == status(u))
         {
             /*如果顶点u是未发现的,则应该引入树边*/
@@ -266,6 +269,64 @@ void Graph<Tv, Te>::DFS(int v, int &clock)
 }
 
 template < typename Tv, typename Te >
+void Graph<Tv, Te>::DFS_V2(int v, int &clock)
+{
+    Stack<int> stack;
+
+    status(v) = VERTEX_STAT_DISCOVERED;
+    dTime(v) = ++clock;
+
+    /*将其入栈*/
+    stack.push(v);
+
+    /*栈不为空则一直迭代*/
+    while (!stack.empty())
+    {
+        int v = stack.top();
+
+        bool discovered = false;
+
+        for (int u = firstNbr(v); u > -1; u = nextNbr(v, u))
+        {
+            if (VERTEX_STAT_UNDISCOVERED == status(u))
+            {
+                discovered = true;
+                /*可引入一条树边*/
+                type(v, u) = EDGE_TYPE_TREE;
+                status(u) = VERTEX_STAT_DISCOVERED;
+                parent(u) = v;
+                dTime(u) = ++clock;
+
+                /*将顶点u入栈,实则对应着递归以u开始进行DFS*/
+                stack.push(u);
+                /*当我们发现v存在一个未发现的顶点u,则随即开始新一轮递归DFS,因此这里发现一个undiscovered的顶点后需要跳出这轮迭代*/
+                break;
+            }
+            else if (VERTEX_STAT_DISCOVERED == status(u))
+            {
+                /*回边*/
+                type(v, u) = EDGE_TYPE_BACKARD;
+            }
+            else
+            {
+                if (dTime(v) < dTime(u))
+                    type(v, u) = EDGE_TYPE_FORWARD;
+                else
+                    type(v, u) = EDGE_TYPE_CROSS;
+            }
+        }
+
+        if (!discovered)
+        {
+            ::printf("vertex %d visited ...\n", v);
+            stack.pop();
+            status(v) = VERTEX_STAT_VISITED;
+            fTime(v) = ++clock;
+        }
+    }
+}
+
+template < typename Tv, typename Te >
 void Graph<Tv, Te>::dfs(int s)
 {
 
@@ -289,7 +350,7 @@ void Graph<Tv, Te>::dfs(int s)
     do
     {
         if (VERTEX_STAT_UNDISCOVERED == status(v))
-            DFS(v, clock);
+            DFS_V2(v, clock);
     } while (s != (v = (++v) % m_vertex_cnt));  /*环形转一圈*/
 }
 
