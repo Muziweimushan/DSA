@@ -106,6 +106,9 @@ public:
     /*全图的dfs算法,以编号为s的顶点开始*/
     void dfs(int s);
 
+    /*基于DFS的拓扑排序,将拓扑排序后的各顶点的顺序记录在入参stack中*/
+    void tSort(int s, Stack<int> &stack);
+
 protected:
     int m_edge_cnt;     /*边总数*/
     int m_vertex_cnt;   /*顶点总数*/
@@ -123,6 +126,8 @@ private:
 
     void DFS(int v, int &clock);
     void DFS_V2(int v, int &clock);
+
+    void TSort(int v, Stack<int> &stack);
 };
 
 template < typename Tv, typename Te >
@@ -318,7 +323,7 @@ void Graph<Tv, Te>::DFS_V2(int v, int &clock)
 
         if (!discovered)
         {
-            ::printf("vertex %d visited ...\n", v);
+            //::printf("vertex %d visited ...\n", v);
             stack.pop();
             status(v) = VERTEX_STAT_VISITED;
             fTime(v) = ++clock;
@@ -352,6 +357,77 @@ void Graph<Tv, Te>::dfs(int s)
         if (VERTEX_STAT_UNDISCOVERED == status(v))
             DFS_V2(v, clock);
     } while (s != (v = (++v) % m_vertex_cnt));  /*环形转一圈*/
+}
+
+template < typename Tv, typename Te >
+void Graph<Tv, Te>::tSort(int s, Stack<int> &stack)
+{
+    /*检查s的合法性*/
+    if (0 < s || s >= m_vertex_cnt)
+        THROW_EXCEPTION(IndexOutOfBoundException, "trying to start topological sort from invalid index of vertex ...");
+
+    int v = s;
+
+    do
+    {
+        if (VERTEX_STAT_UNDISCOVERED == status(v))
+            if (!TSort(v, stack))
+            {
+                while (!stack.empty())
+                    stack.pop();
+                    break;
+            }
+    } while (s != (v = (++v) % m_vertex_cnt));
+}
+
+template < typename Tv, typename Te>
+bool Graph<Tv, Te>::TSort(int v, Stack<int> &stack)
+{
+    Stack<int> tmp;
+
+    status(v) = VERTEX_STAT_DISCOVERED;
+    tmp.push(v);
+
+    while (!tmp.empty())
+    {
+        int v = tmp.top();
+        bool find = false;
+
+        for (int u = firstNbr(v); u > -1 && !find; u = nextNbr(v, u))
+        {
+            switch (status(u))
+            {
+                case VERTEX_STAT_UNDISCOVERED:
+                {
+                    /*未发现的则令之入栈*/ 
+                    status(u) = VERTEX_STAT_DISCOVERED;
+                    tmp.push(u);
+                    find = true;
+                    break;
+                }
+                case VERTEX_STAT_DISCOVERED:
+                {
+                    /*发现了一条回边,则原图存在环路,不满足存在拓扑排序要求*/
+                    return false;
+                }
+                default:
+                {
+                    /*前向边和跨越边不处理*/
+                    break;
+                }
+            }
+        }
+
+        if (!find)
+        {
+            /*当前顶点v的所有邻居都处理完,将顶点v状态设置为VISITED,同时将其入栈stack*/
+            status(v) = VERTEX_STAT_VISITED;
+            tmp.pop();
+            stack.push(v);
+        }
+    }
+
+    return true;
 }
 
 }
