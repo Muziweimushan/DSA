@@ -127,7 +127,7 @@ private:
     void DFS(int v, int &clock);
     void DFS_V2(int v, int &clock);
 
-    void TSort(int v, Stack<int> &stack);
+    bool TSort(int v, Stack<int> &stack);
 };
 
 template < typename Tv, typename Te >
