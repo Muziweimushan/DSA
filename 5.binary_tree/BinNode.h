@@ -204,7 +204,7 @@ template < typename T >
 template < typename VST >
 void BinNode<T>::travPre_iter_V1(BinNodePosi(T) x, const VST &visit)
 {
-    Stack<BinNodePosi(T)> s; /*辅助栈*/
+    MyLib::Stack<BinNodePosi(T)> s; /*辅助栈*/
 
     if (NULL != x)
         s.push(x);
@@ -257,7 +257,7 @@ void BinNode<T>::travPre_iter_V2(BinNodePosi(T) x, const VST &visit)
         if (s.size() <= 0)
             loop = false;
         else
-            x = s.pop();
+            x = s.pop();    /*到了回溯的时候,转移到右侧子树开始新一轮的遍历*/
     }
     /*pop = push = visit = O(n) = 分摊O(1)*/
 }
