@@ -3,9 +3,6 @@
 #ifndef __LIST_IMPLEMENTATION_H__
 #define __LIST_IMPLEMENTATION_H__
 
-#include <iostream>
-using namespace std;
-
 template < typename T >
 List<T>::List()
 {
@@ -15,6 +12,7 @@ List<T>::List()
 template < typename T >
 void List<T>::init(void)
 {
+    //::std::cout << "entering List<T>::init() ..." << ::std::endl;
     m_header = reinterpret_cast<Posi(T)> (&m_node_header);
     m_trailer = reinterpret_cast<Posi(T)> (&m_node_trailer);
     m_size = 0;
@@ -22,13 +20,19 @@ void List<T>::init(void)
     m_header->m_succ = m_trailer;
     m_trailer->m_succ = NULL;
     m_trailer->m_pred = m_header;
+
+    //::std::cout << "succ of trailer = " << m_trailer->m_succ << ::std::endl;
+
+    //::std::cout << "sizeof(ListNode) = " << sizeof(ListNode<T>) << ::std::endl;
+    //::std::cout << "sizeof(m_node_header) = " << sizeof(m_node_header) << ::std::endl;
+    //::std::cout << "leaving List<T>::init() ..." << ::std::endl;
 }
 
 template < typename T >
 T &List<T>::operator [] (Rank r) const
 {
     /*位置r的合法性检查: 0 <= r < size*/
-    if (0 <= r && r > m_size)
+    if (0 <= r && r < m_size)
     {
         Posi(T) p = first();
  
@@ -42,6 +46,8 @@ T &List<T>::operator [] (Rank r) const
     }
     else
     {
+        ::std::cout << "r = " << r << " m_size = " << m_size << ::std::endl;
+        ::sleep(1);
         THROW_EXCEPTION(IndexOutOfBoundException, "Index of List out of bound ...");
     }
 }
@@ -53,9 +59,19 @@ Rank List<T>::rank(Posi(T) p) const
 	Rank ret = -1;/*header的秩就是-1*/
 	Posi(T) start = m_header;
 
+    ::std::cout << "entering List<T>::rank(Posi(T) p) ..." << ::std::endl;
+    ::std::cout << "list size = " << m_size << ::std::endl;
+    ::std::cout << "start = " << start << ::std::endl;
+    ::std::cout << "succ of start = " << (start->m_succ) << ::std::endl;
+    ::std::cout << "trailer = " << m_trailer << ::std::endl;
+    ::std::cout << "succ of trailer = " << m_trailer->m_succ << ::std::endl;
+
+    //::sleep(1);
+
 	/*从首节点一直遍历到尾节点*/
 	while (NULL != start)
 	{
+        ::std::cout << "rank running ... " << ::std::endl;
 		if (start == p)
 		{
 			/*找到了*/
@@ -63,6 +79,8 @@ Rank List<T>::rank(Posi(T) p) const
 		}
 		ret++;
 		start = start->m_succ;
+
+        ::std::cout << "start = " << start << ::std::endl;
 	}
 	/*ret的合法取值范围是[-1, size], 当ret = size + 1表明p不在列表中, ret == -1表明p是列表的header, ret == size表明p是列表的trailer*/
 	return ret;
@@ -79,7 +97,7 @@ Posi(T) List<T>::find(const T &e, int n, Posi(T) p) const
 {
 	Rank r = rank(p);
 	Posi(T) ret = NULL;
-	cout << "r = " << r << endl;
+	::std::cout << "r = " << r << ::std::endl;
 	/*0 <= n <= rank(p) <= size, 等于size时等于从末节点开始向前找*/
 	if ((n >= 0) && (n <= r) && (r <= m_size))
 	{
@@ -402,8 +420,8 @@ Posi(T) List<T>::search(const T &e, int n, Posi(T) p) const
 	}
 	else
 	{
-		cout << "here" << endl;
-		cout << "n = " << n << ", r = " << r << ", m_size = " << m_size << endl;
+		::std::cout << "here" << ::std::endl;
+		::std::cout << "n = " << n << ", r = " << r << ", m_size = " << m_size << ::std::endl;
 		THROW_EXCEPTION(InvalidParameterException, "Trying to search element from list with invalid params ...");
 	}
 	
@@ -510,7 +528,7 @@ void List<T>::insertionSort(Posi(T) p, int n)
 			Posi(T) pos = search(p->m_data, i, p);	/*前面一段是有序的,通过search接口查找,最坏情况(也就是完全逆序,每次都要走完i次)O(i)的复杂度*/
 			/*将当前元素从后面的区间中删掉,然后指向下一个*/
 			Posi(T) toDel = p;
-			p = p->m_succ;
+			p = p->m_succ;/*无序部分规模缩小一个单位*/
 			removeFromList(toDel);
 			/*然后将这个节点插入到pos的后面*/
 			insertAfter(pos, toDel);
@@ -533,7 +551,7 @@ void List<T>::sort()
 template < typename T >
 void List<T>::sort(Posi(T) p, int n)
 {
-	int index = rand() % 3;
+	int index = ::rand() % 3;
 
 	/*抄袭书里边的写法,实际上是按照需要选择合适的排序算法,这样写可以测试所有的排序方法*/
 	switch (index)

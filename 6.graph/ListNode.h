@@ -15,9 +15,10 @@ typedef int Rank;   /*列表的秩*/
 template < typename T >
 struct ListNode : public Object
 {
-    T m_data; /*列表节点实际存放的数据*/
+    
     Posi(T) m_pred;   /*当前节点的前驱predecessor*/
     Posi(T) m_succ;   /*当前节点的后继successor*/
+    T m_data; /*列表节点实际存放的数据*/
 
     /*构造函数定义*/
     //ListNode() {}

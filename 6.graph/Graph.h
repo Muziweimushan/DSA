@@ -5,6 +5,7 @@
 
 #include "Object.h"
 #include "Queue.h"
+#include "Stack.h"
 
 namespace MyLib
 {
@@ -102,6 +103,12 @@ public:
     /*全图的bfs算法,以编号为s的顶点开始*/
     void bfs(int s);
 
+    /*全图的dfs算法,以编号为s的顶点开始*/
+    void dfs(int s);
+
+    /*基于DFS的拓扑排序,将拓扑排序后的各顶点的顺序记录在入参stack中*/
+    void tSort(int s, Stack<int> &stack);
+
 protected:
     int m_edge_cnt;     /*边总数*/
     int m_vertex_cnt;   /*顶点总数*/
@@ -116,6 +123,11 @@ private:
     /*由于整个图算法中可能有多个连通域,且这些连通域之间不相连*/
     /*因此这个接口函数作为整个图算法的bfs算法主体实现*/
     void BFS(int v, int &clock);
+
+    void DFS(int v, int &clock);
+    void DFS_V2(int v, int &clock);
+
+    bool TSort(int v, Stack<int> &stack);
 };
 
 template < typename Tv, typename Te >
@@ -160,7 +172,7 @@ void Graph<Tv, Te>::BFS(int v, int &clock)
         *   在此处实际上需要按实际情况添加对顶点v的数据域进行处理的代码
         */
 
-
+        ::std::cout << "process vertex " << vertex(v) << ::std::endl;
         /*紧接着*/
         /*依次访问v的所有未被访问的邻接顶点*/
         /*遍历邻接矩阵中的第v行, 遍历顶点v的所有邻接顶点*/
@@ -219,7 +231,204 @@ void Graph<Tv, Te>::bfs(int s)
     } while (s != (v = (++v) % m_vertex_cnt));  /*环形转一圈*/
 }
 
+template < typename Tv, typename Te >
+void Graph<Tv, Te>::DFS(int v, int &clock)
+{
+    /*将v标记为discovered*/
+    status(v) = VERTEX_STAT_DISCOVERED;
+    dTime(v) = ++clock; /*记录顶点v的发现时间*/
+
+    ::std::cout << "processing vertex " << v << " ..." << ::std::endl;
+
+    /*遍历顶点v的所有邻居*/
+    for (int u = firstNbr(v); u > -1; u = nextNbr(v, u))
+    {
+        /*不同状态的邻居进入不同分支分别处理*/
+        if (VERTEX_STAT_UNDISCOVERED == status(u))
+        {
+            /*如果顶点u是未发现的,则应该引入树边*/
+            type(v, u) = EDGE_TYPE_TREE;
+            parent(u) = v;  /*自然的,在遍历树中v就是u的父节点了*/
+            DFS(u, clock);  /*递归深入顶点u进行DFS*/
+        }
+        else if (VERTEX_STAT_DISCOVERED == status(u))
+        {
+            /*如果顶点u的状态是发现而未处理完毕,说明在遍历树中v实际上是u的后代*/
+            type(v, u) = EDGE_TYPE_BACKARD; /*后向边,回边*/
+        }
+        else
+        {
+            /*顶点u的状态为已处理完毕*/
+            if (dTime(v) < dTime(u))
+                type(v, u) = EDGE_TYPE_FORWARD; /*前向边*/
+            else
+                type(v, u) = EDGE_TYPE_CROSS;   /*两个顶点在遍历树中不构成祖先后代关系*/
+        }
+    }
+
+    /*顶点v处理完毕,标记为visited,已经记录ftime*/
+    fTime(v) = ++clock;
+    status(v) = VERTEX_STAT_VISITED;
+
+    return;
 }
 
+template < typename Tv, typename Te >
+void Graph<Tv, Te>::DFS_V2(int v, int &clock)
+{
+    Stack<int> stack;
 
+    status(v) = VERTEX_STAT_DISCOVERED;
+    dTime(v) = ++clock;
+
+    /*将其入栈*/
+    stack.push(v);
+
+    /*栈不为空则一直迭代*/
+    while (!stack.empty())
+    {
+        int v = stack.top();
+
+        bool discovered = false;
+
+        for (int u = firstNbr(v); u > -1; u = nextNbr(v, u))
+        {
+            if (VERTEX_STAT_UNDISCOVERED == status(u))
+            {
+                discovered = true;
+                /*可引入一条树边*/
+                type(v, u) = EDGE_TYPE_TREE;
+                status(u) = VERTEX_STAT_DISCOVERED;
+                parent(u) = v;
+                dTime(u) = ++clock;
+
+                /*将顶点u入栈,实则对应着递归以u开始进行DFS*/
+                stack.push(u);
+                /*当我们发现v存在一个未发现的顶点u,则随即开始新一轮递归DFS,因此这里发现一个undiscovered的顶点后需要跳出这轮迭代*/
+                break;
+            }
+            else if (VERTEX_STAT_DISCOVERED == status(u))
+            {
+                /*回边*/
+                type(v, u) = EDGE_TYPE_BACKARD;
+            }
+            else
+            {
+                if (dTime(v) < dTime(u))
+                    type(v, u) = EDGE_TYPE_FORWARD;
+                else
+                    type(v, u) = EDGE_TYPE_CROSS;
+            }
+        }
+
+        if (!discovered)
+        {
+            //::printf("vertex %d visited ...\n", v);
+            stack.pop();
+            status(v) = VERTEX_STAT_VISITED;
+            fTime(v) = ++clock;
+        }
+    }
+}
+
+template < typename Tv, typename Te >
+void Graph<Tv, Te>::dfs(int s)
+{
+
+    /*检查s的合法性*/
+    if (0 < s || s >= m_vertex_cnt)
+        THROW_EXCEPTION(IndexOutOfBoundException, "trying to start dfs from invalid index of vertex ...");
+
+    int clock = 0;  /*最开始时间设置为0*/
+    int v = s;
+
+    reset();
+   
+    /*
+    *   基于BFS接口实现能遍历以顶点v作为根节点的dfs-tree中的所有顶点,
+    *   但是这颗dfs-tree不一定包含图中所有顶点
+    *   因此整个图的DFS算法应当检查所有的顶点,
+    *   如果发现一个顶点处于undiscovered状态,则随即以这个顶点为起点调用一次DFS接口
+    *   直到所有顶点的状态都不为discovered
+    *   此时认为图中所有顶点按照DFS算法顺序进行了一次且仅一次的访问
+    */
+    do
+    {
+        if (VERTEX_STAT_UNDISCOVERED == status(v))
+            DFS_V2(v, clock);
+    } while (s != (v = (++v) % m_vertex_cnt));  /*环形转一圈*/
+}
+
+template < typename Tv, typename Te >
+void Graph<Tv, Te>::tSort(int s, Stack<int> &stack)
+{
+    /*检查s的合法性*/
+    if (0 < s || s >= m_vertex_cnt)
+        THROW_EXCEPTION(IndexOutOfBoundException, "trying to start topological sort from invalid index of vertex ...");
+
+    int v = s;
+
+    do
+    {
+        if (VERTEX_STAT_UNDISCOVERED == status(v))
+            if (!TSort(v, stack))
+            {
+                while (!stack.empty())
+                    stack.pop();
+                    break;
+            }
+    } while (s != (v = (++v) % m_vertex_cnt));
+}
+
+template < typename Tv, typename Te>
+bool Graph<Tv, Te>::TSort(int v, Stack<int> &stack)
+{
+    Stack<int> tmp;
+
+    status(v) = VERTEX_STAT_DISCOVERED;
+    tmp.push(v);
+
+    while (!tmp.empty())
+    {
+        int v = tmp.top();
+        bool find = false;
+
+        for (int u = firstNbr(v); u > -1 && !find; u = nextNbr(v, u))
+        {
+            switch (status(u))
+            {
+                case VERTEX_STAT_UNDISCOVERED:
+                {
+                    /*未发现的则令之入栈*/ 
+                    status(u) = VERTEX_STAT_DISCOVERED;
+                    tmp.push(u);
+                    find = true;
+                    break;
+                }
+                case VERTEX_STAT_DISCOVERED:
+                {
+                    /*发现了一条回边,则原图存在环路,不满足存在拓扑排序要求*/
+                    return false;
+                }
+                default:
+                {
+                    /*前向边和跨越边不处理*/
+                    break;
+                }
+            }
+        }
+
+        if (!find)
+        {
+            /*当前顶点v的所有邻居都处理完,将顶点v状态设置为VISITED,同时将其入栈stack*/
+            status(v) = VERTEX_STAT_VISITED;
+            tmp.pop();
+            stack.push(v);
+        }
+    }
+
+    return true;
+}
+
+}
 #endif
