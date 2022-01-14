@@ -7,7 +7,7 @@ namespace MyLib
 {
 
 #define BinNodePosi(T) BinNode<T> *
-/*获取以p为根节点的子树的高度*/
+/*获取以p为根节点的子树的高度,约定空树高度为-1,因为根节点高度为0*/
 #define stature(p) ((p) ? (p)->m_height : -1)
 
 /*下面定义一些宏,提供一些对二叉树节点相关的便捷操作接口*/

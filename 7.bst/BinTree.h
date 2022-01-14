@@ -320,7 +320,8 @@ void BinTree<T>::travLevel(const VST &visit)
 template < typename T >
 BinTree<T>::~BinTree()
 {
-    remove(m_root);
+    if (nullptr != m_root)
+        remove(m_root);
 }
 
 

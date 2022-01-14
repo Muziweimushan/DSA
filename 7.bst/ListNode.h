@@ -47,9 +47,9 @@ struct ListNode : public Object
 
 template < typename T >
 ListNode<T>::ListNode(const T &e, Posi(T) p, Posi(T) s)
-    : m_data(e),
-    m_pred(p),
-    m_succ(s)
+    : m_pred(p),
+    m_succ(s),
+    m_data(e)
 {
 }
 

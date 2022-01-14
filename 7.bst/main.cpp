@@ -1,49 +1,61 @@
 #include <iostream>
 #include <cstdio>
 #include <stdint.h>
-#include "ListGraph.h"
+#include <vector>
+
+#include "BST.h"
 
 using namespace MyLib;
 
-int main(void)
+struct visit
 {
-    MyLib::ListGraph<char, int> graph;
+    void operator () (int& v) const
+    {
+        ::std::cout << v << ::std::endl;
+    }
+};
 
-    graph.insert('a');  /*0*/
-    graph.insert('b');  /*1*/
-    graph.insert('c');  /*2*/
-    graph.insert('f');  /*3*/
-    graph.insert('g');  /*4*/
-
-    graph.insert(100, 0, 1, 10);
-    graph.insert(100, 1, 2, 10);
-    graph.insert(100, 0, 2, 10);
-    graph.insert(100, 0, 3, 10);
-    graph.insert(100, 3, 4, 10);
-    graph.insert(100, 4, 0, 10);
-    graph.insert(100, 4, 2, 10);
-
-    ::printf("\n\n\n\n\n\n\n\n\n\nstart dfs ...\n\n\n\n\n\n");
-
-    ::printf("vertex cnt = %d\n", graph.getVertexCnt());
-    ::printf("edge cnt = %d\n", graph.getEdgeCnt());
+static void insert_item(BST<int> &bst)
+{
+    ::std::vector<int> vec = {2, 4, 5, 8, 10, 11, 13, 15, 16, 17, 19, 22, 25, 27, 28, 33, 37};
 
     try
     {
-    
-        graph.dfs(0);
+        for (auto &iter : vec)
+            bst.insert(iter);
     }
-    catch (const MyLib::Exception &exception)
+    catch (const Exception &err)
     {
-        ::printf("failed: %s:%s\n", exception.location(), exception.message());
+        ::std::cout << err.message() << ::std::endl;
     }
-
-
-    ::printf("endof dfs ...\n");
-
-    for (int i = 0; i < graph.getVertexCnt(); i++)
+    catch (...)
     {
-        ::printf("vertex[%d] dtime = %d, ftime = %d\n", i, graph.dTime(i), graph.fTime(i));
+        ::std::cout << "insert failed ..." << ::std::endl;
+    }
+}
+
+
+int main(void)
+{
+    BST<int> bst1;
+
+    insert_item(bst1);
+
+    bst1.travIn(visit());
+
+    ::std::cout << "travLevel : " << ::std::endl;
+
+    bst1.travLevel(visit());
+
+    BinNodePosi(int) del = bst1.remove(2);
+    if (nullptr != del)
+    {
+        ::std::cout << "remove success! ..." << ::std::endl;
+        delete del, del = nullptr;
+    }
+    else
+    {
+        ::std::cout << "remove failed ..." << ::std::endl;
     }
 
     return 0;
