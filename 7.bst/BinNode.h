@@ -267,6 +267,7 @@ template < typename VST >
 void BinNode<T>::traverIn(const VST &visit)
 {
     srand(time(NULL));
+    ::printf("root = %p\n", this);
     switch (rand() % 4)
     {
         case 0 : { traverIn_recursion(this, visit); break; }

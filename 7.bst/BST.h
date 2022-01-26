@@ -13,6 +13,7 @@ public:
     virtual BinNodePosi(T) &search(const T &e);     /*BST的查找操作*/
     virtual BinNodePosi(T) insert(const T &e);     /*BST的插入操作*/
     virtual BinNodePosi(T) remove(const T &e);    /*BST的删除操作*/
+    virtual BinNodePosi(T) insert_dup(const T &e);      /*允许插入重复节点*/
 
 protected:
     static BinNodePosi(T) removeAt(BinNodePosi(T) &x, BinNodePosi(T) &hot, BinNodePosi(T) &succ);
@@ -23,6 +24,7 @@ private:
     BinNodePosi(T) &searchIn(BinNodePosi(T) &v, const T &e, BinNodePosi(T) &hot);
     BinNodePosi(T) &searchInDup(BinNodePosi(T) &v, const T &e, BinNodePosi(T) &hot, const bool go_left_branch);
 
+    BinNodePosi(T) &searchGoRightBranch(BinNodePosi(T) &v, BinNodePosi(T) &hot, const T &e);
 };
 
 template < typename T >
@@ -48,7 +50,7 @@ BinNodePosi(T) &BST<T>::search(const T &e)
 template <typename T>
 BinNodePosi(T) BST<T>::insert(const T& e)
 {
-    BinNodePosi(T) &ret = searchInDup(this->m_root, e, m_hot = nullptr, false);
+    BinNodePosi(T) &ret = search(e);
 
     /*
      * 实际上search接口的返回值永远指向值为e的节点处,而且是一个引用
@@ -142,7 +144,7 @@ BinNodePosi(T) BST<T>::remove(const T& e)
 {
     BinNodePosi(T) ret = nullptr;
     BinNodePosi(T) succ = nullptr;
-    BinNodePosi(T) &toDel = searchInDup(this->m_root, e, m_hot = nullptr, true);//search(e);
+    BinNodePosi(T) &toDel = search(e);
     if (nullptr == toDel)
         return ret;   /*未查找到对应节点,删除失败*/
 
@@ -189,9 +191,65 @@ BinNodePosi(T) &BST<T>::searchInDup(BinNodePosi(T) &v, const T &e, BinNodePosi(T
     return cur;
 }
 
+template < typename T >
+BinNodePosi(T) &BST<T>::searchGoRightBranch(BinNodePosi(T) &v, BinNodePosi(T) &hot, const T &e)
+{
+    if (nullptr == v)
+        return v;
+
+    hot = v;
+    while (1)
+    {
+        /*约定遇到相等节点时往右侧深入,满足中序遍历下先进先出的要求*/
+        BinNodePosi(T) &c = (e < hot->m_data) ? hot->m_leftchild : hot->m_rightchild;
+
+        if (nullptr == c)
+            return c;
+
+        hot = c;
+    }
 }
 
+template < typename T >
+BinNodePosi(T) BST<T>::insert_dup(const T &e)
+{
+    BinNodePosi(T) &ret = searchGoRightBranch(this->m_root, m_hot = nullptr, e); 
 
+    if (nullptr == ret)
+    {
+        ret = new BinNode<T>(e, m_hot);
+        if (nullptr == ret)
+            THROW_EXCEPTION(NoEnoughMemoryException, "no enough memory  for new BST node ...");
+
+        /*更新树规模*/
+        this->m_size++;
+
+        /*更新所有相关节点的高度*/
+        this->updateHeightAbove(ret);
+    }
+    else
+    {
+        THROW_EXCEPTION(InvalidOperationException, "insert bst node failed ...");
+    }
+
+    return ret;
+}
+
+template < typename T >
+BinNodePosi(T) &BST<T>::searchInDupLeftBranch(const T &e, BinNodePosi(T) &v, BinNodePosi(T) &hot, BinNodePosi(T) &hit)
+{
+    if (nullptr == v)
+       return v; 
+
+    hot = v;
+
+    while (1)
+    {
+         
+    }
+}
+
+}
 
 #endif
 
